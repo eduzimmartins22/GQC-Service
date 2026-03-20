@@ -1,30 +1,50 @@
 {
-  "expo": {
-    "name": "isaac",
-    "slug": "isaac",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "supportsTablet": true
-    },
-    "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+  "name": "isaac",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "~14.0.4",
+    "@react-navigation/bottom-tabs": "^6.5.20",
+    "@react-navigation/native": "^6.1.17",
+    "@react-navigation/native-stack": "^6.9.26",
+    "expo": "~54.0.0",
+    "expo-status-bar": "~2.2.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-native": "0.77.1",
+    "react-native-gesture-handler": "~2.21.0",
+    "react-native-reanimated": "~3.10.1",
+    "react-native-safe-area-context": "4.12.0",
+    "react-native-screens": "~4.4.0",
+    "react-native-web": "~0.19.13",
+    "zustand": "^5.0.11"
+  },
+  "devDependencies": {
+    "@types/react": "~18.3.12"
+  },
+  "private": true,
+  "extra": {
+    "eas": {
+      "projectId": "b8b1373d-5939-41b6-b544-110f18e57b3b"
     }
+  },
+  "expo": {
+    "android": {
+      "package": "com.eduardo132.isaac"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b8b1373d-5939-41b6-b544-110f18e57b3b"
+      }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
