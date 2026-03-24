@@ -1,13 +1,7 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
+  View, Text, TextInput, ScrollView, StyleSheet,
+  TouchableOpacity, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store/useStore';
@@ -18,19 +12,29 @@ import { Colors, Typography, Spacing, Radii, Shadows } from '../../constants/the
 
 const PRIORITIES = [TicketPriority.LOW, TicketPriority.MEDIUM, TicketPriority.HIGH];
 
+const CATEGORIES = [
+  { key: 'Hardware', icon: 'hardware-chip-outline' },
+  { key: 'Software', icon: 'code-slash-outline' },
+  { key: 'Rede', icon: 'wifi-outline' },
+  { key: 'Impressora', icon: 'print-outline' },
+  { key: 'E-mail', icon: 'mail-outline' },
+  { key: 'Outro', icon: 'ellipsis-horizontal-outline' },
+];
+
 export function NewTicketScreen({ navigation }: any) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<TicketPriority>(TicketPriority.MEDIUM);
+  const [category, setCategory] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const { openTicket } = useStore();
 
-  const isValid = title.trim().length >= 3 && description.trim().length >= 10;
+  const isValid = title.trim().length >= 3 && description.trim().length >= 10 && category !== '';
 
   const handleSubmit = () => {
     if (!isValid) return;
-    openTicket({ title: title.trim(), description: description.trim(), priority });
+    openTicket({ title: title.trim(), description: description.trim(), priority, category });
     setSubmitted(true);
   };
 
@@ -65,6 +69,33 @@ export function NewTicketScreen({ navigation }: any) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {/* Category */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>Categoria *</Text>
+          <View style={styles.categoryGrid}>
+            {CATEGORIES.map(cat => {
+              const selected = category === cat.key;
+              return (
+                <TouchableOpacity
+                  key={cat.key}
+                  onPress={() => setCategory(cat.key)}
+                  style={[styles.categoryBtn, selected && styles.categoryBtnActive]}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={cat.icon as any}
+                    size={22}
+                    color={selected ? Colors.primary : Colors.textTertiary}
+                  />
+                  <Text style={[styles.categoryLabel, selected && styles.categoryLabelActive]}>
+                    {cat.key}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
         {/* Title field */}
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Título do problema *</Text>
@@ -144,19 +175,29 @@ export function NewTicketScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  content: {
-    padding: Spacing.base,
-    paddingBottom: Spacing.xxxl,
+  content: { padding: Spacing.base, paddingBottom: Spacing.xxxl },
+  fieldGroup: { marginBottom: Spacing.lg },
+  label: { fontSize: Typography.sm, fontWeight: '600', color: Colors.textPrimary, marginBottom: Spacing.xs },
+
+  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  categoryBtn: {
+    width: '30%',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.white,
+    borderRadius: Radii.lg,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    gap: 6,
+    ...Shadows.sm,
   },
-  fieldGroup: {
-    marginBottom: Spacing.lg,
+  categoryBtnActive: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryLight,
   },
-  label: {
-    fontSize: Typography.sm,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    marginBottom: Spacing.xs,
-  },
+  categoryLabel: { fontSize: Typography.xs, fontWeight: '600', color: Colors.textTertiary },
+  categoryLabelActive: { color: Colors.primary },
+
   input: {
     backgroundColor: Colors.white,
     borderWidth: 1.5,
@@ -168,68 +209,27 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     ...Shadows.sm,
   },
-  textArea: {
-    minHeight: 120,
-    paddingTop: Spacing.md,
-  },
-  charCount: {
-    fontSize: Typography.xs,
-    color: Colors.textTertiary,
-    textAlign: 'right',
-    marginTop: 4,
-  },
-  priorityRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
+  textArea: { minHeight: 120, paddingTop: Spacing.md },
+  charCount: { fontSize: Typography.xs, color: Colors.textTertiary, textAlign: 'right', marginTop: 4 },
+
+  priorityRow: { flexDirection: 'row', gap: Spacing.sm },
   priorityBtn: {
-    flex: 1,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radii.md,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    backgroundColor: Colors.white,
+    flex: 1, paddingVertical: Spacing.sm, borderRadius: Radii.md,
+    borderWidth: 1.5, borderColor: Colors.border, alignItems: 'center', backgroundColor: Colors.white,
   },
-  priorityLabel: {
-    fontSize: Typography.sm,
-    fontWeight: '600',
-  },
+  priorityLabel: { fontSize: Typography.sm, fontWeight: '600' },
+
   infoBanner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: Colors.primaryLight,
-    borderRadius: Radii.md,
-    padding: Spacing.md,
-    gap: Spacing.xs,
-    marginBottom: Spacing.base,
+    flexDirection: 'row', alignItems: 'flex-start', backgroundColor: Colors.primaryLight,
+    borderRadius: Radii.md, padding: Spacing.md, gap: Spacing.xs, marginBottom: Spacing.base,
   },
-  infoText: {
-    flex: 1,
-    fontSize: Typography.xs,
-    color: Colors.primary,
-    lineHeight: 16,
-  },
+  infoText: { flex: 1, fontSize: Typography.xs, color: Colors.primary, lineHeight: 16 },
+
   successContainer: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: Spacing.xl,
+    flex: 1, backgroundColor: Colors.background, alignItems: 'center',
+    justifyContent: 'center', padding: Spacing.xl,
   },
-  successIcon: {
-    marginBottom: Spacing.lg,
-  },
-  successTitle: {
-    fontSize: Typography.xxl,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: Spacing.sm,
-  },
-  successText: {
-    fontSize: Typography.base,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
+  successIcon: { marginBottom: Spacing.lg },
+  successTitle: { fontSize: Typography.xxl, fontWeight: '800', color: Colors.textPrimary, marginBottom: Spacing.sm },
+  successText: { fontSize: Typography.base, color: Colors.textSecondary, textAlign: 'center', lineHeight: 24 },
 });

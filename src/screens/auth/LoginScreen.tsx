@@ -117,6 +117,14 @@ export function LoginScreen({ navigation }: any) {
               Demo: cliente@isaac.com / tecnico@isaac.com{'\n'}Senha: 123456
             </Text>
           </View>
+
+          {/* Register link */}
+          <Text style={styles.registerHint}>
+            Não tem conta?{' '}
+            <Text style={styles.registerLink} onPress={() => navigation.navigate('Register')}>
+              Criar conta
+            </Text>
+          </Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -240,5 +248,15 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     textAlign: 'center',
     lineHeight: 18,
+  },
+  registerHint: {
+    textAlign: 'center',
+    marginTop: Spacing.lg,
+    fontSize: Typography.sm,
+    color: Colors.textSecondary,
+  },
+  registerLink: {
+    color: Colors.primary,
+    fontWeight: '700',
   },
 });

@@ -41,6 +41,21 @@ export function TicketCard({ ticket, onPress, showClient = false }: TicketCardPr
           {ticket.description}
         </Text>
 
+        {/* Category + rating row */}
+        <View style={styles.tagsRow}>
+          {ticket.category && (
+            <View style={styles.categoryPill}>
+              <Text style={styles.categoryText}>{ticket.category}</Text>
+            </View>
+          )}
+          {ticket.rating && (
+            <View style={styles.ratingPill}>
+              <Ionicons name="star" size={10} color={Colors.warning} />
+              <Text style={styles.ratingText}>{ticket.rating}/5</Text>
+            </View>
+          )}
+        </View>
+
         {/* Footer */}
         <View style={styles.footer}>
           <View style={styles.footerLeft}>
@@ -131,5 +146,35 @@ const styles = StyleSheet.create({
   },
   chevron: {
     marginRight: Spacing.sm,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  categoryPill: {
+    backgroundColor: Colors.primaryLight,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: Radii.full,
+  },
+  categoryText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  ratingPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: '#FFFBEB',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: Radii.full,
+  },
+  ratingText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.warning,
   },
 });

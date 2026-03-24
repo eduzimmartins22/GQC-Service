@@ -19,36 +19,26 @@ export enum TicketPriority {
 
 // ─── MODELS ───────────────────────────────────────────────────────────────────
 
+export interface Address {
+  cep: string;
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+}
+
 export interface User {
   id: string;
   name: string;
+  cpf: string;
   email: string;
+  phone: string;
   role: UserRole;
-  phone?: string;
+  address?: Address;
   avatarUrl?: string;
   createdAt: string;
-}
-
-export interface Ticket {
-  id: string;
-  ticketNumber: string;        // ex: #0042
-  title: string;
-  description: string;
-  status: TicketStatus;
-  priority: TicketPriority;
-  clientId: string;
-  clientName: string;
-  technicianId?: string;
-  technicianName?: string;
-  createdAt: string;
-  updatedAt: string;
-  closedAt?: string;
-  // Prepared for future phases:
-  location?: string;           // Phase 2: geolocation
-  attachments?: string[];      // Phase 2: photo uploads
-  category?: string;           // Phase 2: ticket categories
-  rating?: number;             // Phase 2: client satisfaction rating
-  notes?: TicketNote[];        // Phase 2: internal notes
 }
 
 export interface TicketNote {
@@ -57,6 +47,40 @@ export interface TicketNote {
   authorId: string;
   authorName: string;
   content: string;
+  isFinalizationNote: boolean;
+  createdAt: string;
+}
+
+export interface Ticket {
+  id: string;
+  ticketNumber: string;
+  title: string;
+  description: string;
+  status: TicketStatus;
+  priority: TicketPriority;
+  category?: string;
+  clientId: string;
+  clientName: string;
+  technicianId?: string;
+  technicianName?: string;
+  createdAt: string;
+  updatedAt: string;
+  closedAt?: string;
+  finalizationNote?: string;
+  notes?: TicketNote[];
+  rating?: number;
+  ratingComment?: string;
+  location?: string;
+  attachments?: string[];
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  body: string;
+  ticketId?: string;
+  read: boolean;
   createdAt: string;
 }
 
@@ -73,14 +97,29 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface RegisterData {
+  name: string;
+  cpf: string;
+  email: string;
+  phone: string;
+  password: string;
+  cep: string;
+  addressNumber: string;
+  complement?: string;
+}
+
 // ─── NAVIGATION ───────────────────────────────────────────────────────────────
 
 export type RootStackParamList = {
   Login: undefined;
+  Register: undefined;
   ClientTabs: undefined;
   TechnicianTabs: undefined;
   TicketDetail: { ticketId: string };
   NewTicket: undefined;
+  ClientTickets: { clientId: string; clientName: string };
+  Notifications: undefined;
+  RateTicket: { ticketId: string };
 };
 
 export type ClientTabParamList = {
@@ -91,11 +130,9 @@ export type ClientTabParamList = {
 
 export type TechnicianTabParamList = {
   TechnicianHome: undefined;
-  AllTickets: undefined;
+  ClientsByTech: undefined;
   Profile: undefined;
 };
-
-// ─── STORE ────────────────────────────────────────────────────────────────────
 
 export interface AppState {
   auth: AuthState;
