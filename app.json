@@ -1,50 +1,57 @@
 {
-  "name": "isaac",
-  "version": "1.0.0",
-  "main": "index.ts",
-  "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
-  },
-  "dependencies": {
-    "@expo/vector-icons": "~14.0.4",
-    "@react-navigation/bottom-tabs": "^6.5.20",
-    "@react-navigation/native": "^6.1.17",
-    "@react-navigation/native-stack": "^6.9.26",
-    "expo": "~54.0.0",
-    "expo-status-bar": "~2.2.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "react-native": "0.77.1",
-    "react-native-gesture-handler": "~2.21.0",
-    "react-native-reanimated": "~3.10.1",
-    "react-native-safe-area-context": "4.12.0",
-    "react-native-screens": "~4.4.0",
-    "react-native-web": "~0.19.13",
-    "zustand": "^5.0.11"
-  },
-  "devDependencies": {
-    "@types/react": "~18.3.12"
-  },
-  "private": true,
-  "extra": {
-    "eas": {
-      "projectId": "b8b1373d-5939-41b6-b544-110f18e57b3b"
-    }
-  },
   "expo": {
-    "android": {
-      "package": "com.eduardo132.isaac"
+    "name": "ISAAC",
+    "slug": "isaac",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#8C1C2E"
     },
+    "android": {
+      "package": "com.eduardo132.isaac",
+      "adaptiveIcon": {
+        "backgroundColor": "#8C1C2E"
+      },
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "SUA_GOOGLE_MAPS_API_KEY_AQUI"
+        }
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.eduardo132.isaac",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "O ISAAC usa sua localização para rastrear o técnico até o cliente.",
+        "NSFaceIDUsageDescription": "Use Face ID para entrar no ISAAC com mais rapidez e segurança."
+      },
+      "config": {
+        "googleMapsApiKey": "SUA_GOOGLE_MAPS_API_KEY_AQUI"
+      }
+    },
+    "plugins": [
+      "expo-font",
+      "expo-local-authentication",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "O ISAAC usa sua localização para rastrear o técnico até o cliente."
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "b8b1373d-5939-41b6-b544-110f18e57b3b"
       }
-    },
-    "plugins": [
-      "expo-font"
-    ]
+    }
   }
 }
