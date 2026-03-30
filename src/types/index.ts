@@ -1,5 +1,3 @@
-// ─── ENUMS ────────────────────────────────────────────────────────────────────
-
 export enum UserRole {
   CLIENT = 'client',
   TECHNICIAN = 'technician',
@@ -16,8 +14,6 @@ export enum TicketPriority {
   MEDIUM = 'medium',
   HIGH = 'high',
 }
-
-// ─── MODELS ───────────────────────────────────────────────────────────────────
 
 export interface Address {
   cep: string;
@@ -51,16 +47,46 @@ export interface TicketNote {
   createdAt: string;
 }
 
+// ── Chat message between client and technician
+export interface ChatMessage {
+  id: string;
+  ticketId: string;
+  senderId: string;
+  senderName: string;
+  senderRole: UserRole;
+  content: string;
+  createdAt: string;
+  read: boolean;
+}
+
 export interface Ticket {
   id: string;
   ticketNumber: string;
   title: string;
-  description: string;
+  description: string;          // "outros" description or auto-generated
   status: TicketStatus;
   priority: TicketPriority;
+
+  // ── Equipment structure (new)
+  equipmentId?: string;         // e.g. 'elevador'
+  equipmentTitle?: string;      // e.g. 'Elevador'
+  subtypeId?: string;           // e.g. 'hidraulico'
+  subtypeLabel?: string;        // e.g. '1 — Hidráulico'
+  symptoms?: string[];          // e.g. ['Elétrico', 'Sem força']
+  isOtherProblem?: boolean;     // true if "Outros"
+  extraDetails?: string;        // optional detail box
+
+  // ── Legacy / extra
   category?: string;
+
+  // ── Client info snapshot (captured at ticket creation)
   clientId: string;
   clientName: string;
+  clientPhone?: string;
+  clientCpf?: string;
+  clientEmail?: string;
+  clientAddress?: Address;
+
   technicianId?: string;
   technicianName?: string;
   createdAt: string;
@@ -68,6 +94,7 @@ export interface Ticket {
   closedAt?: string;
   finalizationNote?: string;
   notes?: TicketNote[];
+  messages?: ChatMessage[];
   rating?: number;
   ratingComment?: string;
   location?: string;
@@ -83,8 +110,6 @@ export interface Notification {
   read: boolean;
   createdAt: string;
 }
-
-// ─── AUTH ─────────────────────────────────────────────────────────────────────
 
 export interface AuthState {
   user: User | null;
@@ -108,8 +133,6 @@ export interface RegisterData {
   complement?: string;
 }
 
-// ─── NAVIGATION ───────────────────────────────────────────────────────────────
-
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
@@ -120,6 +143,8 @@ export type RootStackParamList = {
   ClientTickets: { clientId: string; clientName: string };
   Notifications: undefined;
   RateTicket: { ticketId: string };
+  Tracking: { ticketId: string };
+  Chat: { ticketId: string };
 };
 
 export type ClientTabParamList = {
