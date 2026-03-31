@@ -59,6 +59,16 @@ export interface ChatMessage {
   read: boolean;
 }
 
+export interface Attachment {
+  id: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  fileUrl: string;
+  uploadedBy: string;
+  uploadedAt: string;
+}
+
 export interface Ticket {
   id: string;
   ticketNumber: string;
@@ -75,6 +85,16 @@ export interface Ticket {
   symptoms?: string[];          // e.g. ['Elétrico', 'Sem força']
   isOtherProblem?: boolean;     // true if "Outros"
   extraDetails?: string;        // optional detail box
+
+  // ── Installation
+  installationId?: string;      // e.g. 'elevador_inst'
+  installationTitle?: string;   // e.g. 'Elevador'
+  installationCategory?: string;// e.g. 'instalacao_equipamentos'
+
+  // ── Distance and travel costs
+  distanceKm?: number;          // Total distance (ida e volta) in km
+  travelCost?: number;          // R$ cost for excess distance
+  hasDistanceWarning?: boolean; // true if distance > 60km
 
   // ── Legacy / extra
   category?: string;
@@ -98,7 +118,7 @@ export interface Ticket {
   rating?: number;
   ratingComment?: string;
   location?: string;
-  attachments?: string[];
+  attachments?: Attachment[];
 }
 
 export interface Notification {

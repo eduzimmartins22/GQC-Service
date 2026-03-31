@@ -127,4 +127,23 @@ export const EQUIPMENT_CATALOG: EquipmentCategory[] = [
       },
     ],
   },
+  {
+    id: 'rede_ar',
+    title: 'Rede de ar comprimido',
+    icon: 'git-branch-outline',
+    color: '#7A4B8D',
+    subtypes: [
+      {
+        id: 'rede_ar_geral',
+        label: 'Rede de ar comprimido',
+        symptoms: [
+          { id: 'n_vazamento',     label: 'Vazamento na rede' },
+          { id: 'n_pressao',       label: 'Perda de pressão' },
+          { id: 'n_ruido',         label: 'Ruído anormal' },
+          { id: 'n_condensacao',   label: 'Condensação no sistema' },
+          { id: 'n_corrosao',      label: 'Corrosão em tubulações' },
+        ],
+      },
+    ],
+  },
 ];
