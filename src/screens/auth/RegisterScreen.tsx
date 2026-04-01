@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, StyleSheet, KeyboardAvoidingView,
-  Platform, ScrollView, TouchableOpacity, ActivityIndicator,
+  Platform, ScrollView, TouchableOpacity
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store/useStore';
 import { Button } from '../../components/common/Button';
 import { Colors, Typography, Spacing, Radii, Shadows } from '../../constants/theme';
+import { validateCPF, validateCEP, validateEmail, validatePhone, validateRequired } from '../../utils/validations';
 
 function formatCPF(v: string) {
   const d = v.replace(/\D/g, '').slice(0, 11);
@@ -29,43 +30,6 @@ function formatCEP(v: string) {
   return `${d.slice(0,5)}-${d.slice(5)}`;
 }
 
-interface FieldProps {
-  label: string;
-  icon: string;
-  value: string;
-  onChangeText: (v: string) => void;
-  placeholder?: string;
-  keyboardType?: any;
-  secureTextEntry?: boolean;
-  maxLength?: number;
-  autoCapitalize?: any;
-  rightIcon?: React.ReactNode;
-}
-
-function Field({ label, icon, value, onChangeText, placeholder, keyboardType, secureTextEntry, maxLength, autoCapitalize, rightIcon }: FieldProps) {
-  return (
-    <View style={styles.fieldGroup}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.inputWrapper}>
-        <Ionicons name={icon as any} size={16} color={Colors.textTertiary} style={styles.inputIcon} />
-        <TextInput
-          style={styles.input}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor={Colors.textTertiary}
-          keyboardType={keyboardType || 'default'}
-          secureTextEntry={secureTextEntry}
-          maxLength={maxLength}
-          autoCapitalize={autoCapitalize || 'sentences'}
-          autoCorrect={false}
-        />
-        {rightIcon}
-      </View>
-    </View>
-  );
-}
-
 export function RegisterScreen({ navigation }: any) {
   const [name, setName] = useState('');
   const [cpf, setCpf] = useState('');
@@ -76,21 +40,28 @@ export function RegisterScreen({ navigation }: any) {
   const [cep, setCep] = useState('');
   const [addressNumber, setAddressNumber] = useState('');
   const [complement, setComplement] = useState('');
-  const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const { register, isLoading } = useStore();
 
-  const isValid =
-    name.trim().length >= 3 &&
-    cpf.replace(/\D/g, '').length === 11 &&
-    phone.replace(/\D/g, '').length >= 10 &&
-    email.includes('@') &&
-    password.length >= 6 &&
-    cep.replace(/\D/g, '').length === 8 &&
-    addressNumber.trim().length > 0;
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!validateRequired(name, 'Nome').valid) errors.name = 'Nome obrigatório';
+    if (!validateCPF(cpf).valid) errors.cpf = 'CPF inválido';
+    if (!validatePhone(phone).valid) errors.phone = 'Telefone inválido';
+    if (!validateEmail(email).valid) errors.email = 'Email inválido';
+    if (!password || password.length < 6) errors.password = 'Senha mínima de 6 caracteres';
+    if (!validateCEP(cep).valid) errors.cep = 'CEP inválido';
+    if (!addressNumber) errors.addressNumber = 'Número obrigatório';
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleRegister = async () => {
-    setError('');
+    if (!validateForm()) return;
+
     const result = await register({
       name: name.trim(),
       cpf,
@@ -101,102 +72,47 @@ export function RegisterScreen({ navigation }: any) {
       addressNumber: addressNumber.trim(),
       complement: complement.trim() || undefined,
     });
+
     if (!result.success) {
-      setError(result.error || 'Erro ao cadastrar.');
+      setFieldErrors({ form: result.error || 'Erro ao cadastrar.' });
     }
   };
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: Colors.background }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scroll}>
 
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={Colors.primary} />
         </TouchableOpacity>
 
-        <View style={styles.header}>
-          <Text style={styles.title}>Criar conta</Text>
-          <Text style={styles.subtitle}>Preencha seus dados para continuar</Text>
-        </View>
+        <Text style={styles.title}>Criar conta</Text>
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Dados pessoais</Text>
+        <TextInput placeholder="Nome" value={name} onChangeText={setName} style={styles.input} />
+        <TextInput placeholder="CPF" value={cpf} onChangeText={(v) => setCpf(formatCPF(v))} style={styles.input} />
+        <TextInput placeholder="Telefone" value={phone} onChangeText={(v) => setPhone(formatPhone(v))} style={styles.input} />
+        <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
+        <TextInput placeholder="Senha" secureTextEntry={!showPassword} value={password} onChangeText={setPassword} style={styles.input} />
 
-          <Field label="Nome completo *" icon="person-outline" value={name} onChangeText={setName} placeholder="Seu nome completo" />
-          <Field label="CPF *" icon="card-outline" value={cpf} onChangeText={v => setCpf(formatCPF(v))} placeholder="000.000.000-00" keyboardType="numeric" maxLength={14} autoCapitalize="none" />
-          <Field label="Telefone / WhatsApp *" icon="call-outline" value={phone} onChangeText={v => setPhone(formatPhone(v))} placeholder="(00) 00000-0000" keyboardType="phone-pad" maxLength={15} />
-          <Field label="E-mail *" icon="mail-outline" value={email} onChangeText={setEmail} placeholder="seu@email.com" keyboardType="email-address" autoCapitalize="none" />
-          <Field
-            label="Senha *"
-            icon="lock-closed-outline"
-            value={password}
-            onChangeText={setPassword}
-            placeholder="Mínimo 6 caracteres"
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            rightIcon={
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
-                <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color={Colors.textTertiary} />
-              </TouchableOpacity>
-            }
-          />
-        </View>
+        <TextInput placeholder="CEP" value={cep} onChangeText={(v) => setCep(formatCEP(v))} style={styles.input} />
+        <TextInput placeholder="Número" value={addressNumber} onChangeText={setAddressNumber} style={styles.input} />
+        <TextInput placeholder="Complemento" value={complement} onChangeText={setComplement} style={styles.input} />
 
-        <View style={[styles.card, { marginTop: Spacing.md }]}>
-          <Text style={styles.sectionTitle}>Localização</Text>
+        <Button label="Criar conta" onPress={handleRegister} />
 
-          <Field label="CEP *" icon="location-outline" value={cep} onChangeText={v => setCep(formatCEP(v))} placeholder="00000-000" keyboardType="numeric" maxLength={9} />
-          <Field label="Número *" icon="home-outline" value={addressNumber} onChangeText={setAddressNumber} placeholder="Ex: 42" keyboardType="numeric" />
-          <Field label="Complemento" icon="business-outline" value={complement} onChangeText={setComplement} placeholder="Apto, Sala, Bloco... (opcional)" />
-        </View>
-
-        {error ? (
-          <View style={styles.errorBanner}>
-            <Ionicons name="alert-circle-outline" size={16} color={Colors.error} />
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        ) : null}
-
-        <Button
-          label={isLoading ? 'Cadastrando...' : 'Criar conta'}
-          onPress={handleRegister}
-          disabled={!isValid || isLoading}
-          fullWidth
-          size="lg"
-          style={{ marginTop: Spacing.lg }}
-        />
-
-        <Text style={styles.loginHint}>
-          Já tem conta?{' '}
-          <Text style={styles.loginLink} onPress={() => navigation.goBack()}>Entrar</Text>
-        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { padding: Spacing.base, paddingBottom: Spacing.xxxl },
-  backBtn: { marginBottom: Spacing.base, width: 36, height: 36, justifyContent: 'center' },
-  header: { marginBottom: Spacing.lg },
-  title: { fontSize: Typography.xl, fontWeight: '800', color: Colors.textPrimary },
-  subtitle: { fontSize: Typography.sm, color: Colors.textSecondary, marginTop: 4 },
-  card: {
-    backgroundColor: Colors.white,
-    borderRadius: Radii.lg,
-    padding: Spacing.base,
-    ...Shadows.sm,
-    marginBottom: Spacing.sm,
-  },
-  sectionTitle: { fontSize: Typography.sm, fontWeight: '700', color: Colors.textSecondary, marginBottom: Spacing.md, textTransform: 'uppercase', letterSpacing: 0.5 },
-  fieldGroup: { marginBottom: Spacing.md },
-  label: { fontSize: Typography.sm, fontWeight: '600', color: Colors.textPrimary, marginBottom: 6 },
-  inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.background, borderWidth: 1.5, borderColor: Colors.border, borderRadius: Radii.md, paddingHorizontal: Spacing.md },
-  inputIcon: { marginRight: Spacing.sm },
-  input: { flex: 1, fontSize: Typography.base, color: Colors.textPrimary, paddingVertical: Spacing.sm + 2 },
-  eyeBtn: { padding: 4 },
-  errorBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, backgroundColor: Colors.errorBg, borderRadius: Radii.md, padding: Spacing.md, marginTop: Spacing.sm },
-  errorText: { flex: 1, fontSize: Typography.sm, color: Colors.error },
-  loginHint: { textAlign: 'center', marginTop: Spacing.lg, fontSize: Typography.sm, color: Colors.textSecondary },
-  loginLink: { color: Colors.primary, fontWeight: '700' },
+  scroll: { padding: Spacing.base },
+  backBtn: { marginBottom: 20 },
+  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20 },
+  input: {
+    backgroundColor: '#fff',
+    padding: 12,
+    marginBottom: 10,
+    borderRadius: 8
+  }
 });

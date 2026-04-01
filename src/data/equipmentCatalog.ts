@@ -101,7 +101,7 @@ export const EQUIPMENT_CATALOG: EquipmentCategory[] = [
     id: 'desmontadora',
     title: 'Desmontadora',
     icon: 'settings-outline',
-    image: require('../../assets/desmontadora.jpg'),
+    image: require('../../assets/desmontadoraP.jpg'),
     color: '#8C1C2E',
     subtypes: [
       {
@@ -119,7 +119,7 @@ export const EQUIPMENT_CATALOG: EquipmentCategory[] = [
     id: 'balanceadora',
     title: 'Balanceadora',
     icon: 'speedometer-outline',
-    image: require('../../assets/balanceadora.jpg'),
+    image: require('../../assets/balanceadoraR.jpg'),
     color: '#B02540',
     subtypes: [
       {

@@ -358,14 +358,18 @@ export function TicketDetailScreen({ route, navigation }: any) {
   );
 }
 
-function InfoRow({ icon, label, value }: { icon: string; label: string; value: string }) {
+function InfoRow({ icon, label, value }: { icon: string; label: string; value: string | undefined }) {
+  if (!value || typeof value !== 'string' || value.trim().length === 0) {
+    return null;
+  }
+  
   return (
     <View style={styles.infoRow}>
       <View style={styles.infoLeft}>
         <Ionicons name={icon as any} size={15} color={Colors.textTertiary} />
         <Text style={styles.infoLabel}>{label}</Text>
       </View>
-      <Text style={styles.infoValue} numberOfLines={2}>{value}</Text>
+      <Text style={styles.infoValue} numberOfLines={2}>{value.trim()}</Text>
     </View>
   );
 }

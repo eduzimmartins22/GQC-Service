@@ -4,7 +4,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { View, StyleSheet } from 'react-native';
 import { AppNavigator } from './src/navigation/AppNavigator';
-import { LGPDFooter } from './src/components/common/LGPDFooter';
 
 export default function App() {
   return (
@@ -13,7 +12,6 @@ export default function App() {
         <View style={styles.root}>
           <StatusBar style="auto" />
           <AppNavigator />
-          <LGPDFooter />
         </View>
       </SafeAreaProvider>
     </GestureHandlerRootView>

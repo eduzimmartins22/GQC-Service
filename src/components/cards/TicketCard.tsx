@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Ticket } from '../../types';
+import { Ticket, TicketPriority } from '../../types';
 import { StatusBadge } from '../common/Badges';
 import { timeAgo, priorityConfig } from '../../utils/helpers';
 import { Colors, Typography, Spacing, Radii, Shadows } from '../../constants/theme';
@@ -13,7 +13,11 @@ interface TicketCardProps {
 }
 
 export function TicketCard({ ticket, onPress, showClient = false }: TicketCardProps) {
-  const priority = priorityConfig[ticket.priority];
+  // Validação robusta de prioridade
+  const defaultPriority = priorityConfig[TicketPriority.MEDIUM];
+  const priority = ticket?.priority && priorityConfig[ticket.priority] 
+    ? priorityConfig[ticket.priority]
+    : defaultPriority;
 
   return (
     <TouchableOpacity
@@ -22,60 +26,68 @@ export function TicketCard({ ticket, onPress, showClient = false }: TicketCardPr
       style={styles.card}
     >
       {/* Priority accent bar */}
-      <View style={[styles.accentBar, { backgroundColor: priority.color }]} />
+      <View style={[styles.accentBar, { backgroundColor: priority?.color || Colors.primary }]} />
 
       <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.ticketNumber}>{ticket.ticketNumber}</Text>
-          <StatusBadge status={ticket.status} />
+          <Text style={styles.ticketNumber}>{ticket?.ticketNumber || '#0000'}</Text>
+          {ticket?.status && <StatusBadge status={ticket.status} />}
         </View>
 
         {/* Title */}
-        <Text style={styles.title} numberOfLines={1}>
-          {ticket.title}
-        </Text>
+        {ticket?.title && (
+          <Text style={styles.title} numberOfLines={1}>
+            {ticket.title}
+          </Text>
+        )}
 
         {/* Description preview */}
-        <Text style={styles.description} numberOfLines={2}>
-          {ticket.description}
-        </Text>
+        {ticket?.description && (
+          <Text style={styles.description} numberOfLines={2}>
+            {ticket.description}
+          </Text>
+        )}
 
         {/* Category + rating row */}
-        <View style={styles.tagsRow}>
-          {ticket.category && (
-            <View style={styles.categoryPill}>
-              <Text style={styles.categoryText}>{ticket.category}</Text>
-            </View>
-          )}
-          {ticket.rating && (
-            <View style={styles.ratingPill}>
-              <Ionicons name="star" size={10} color={Colors.warning} />
-              <Text style={styles.ratingText}>{ticket.rating}/5</Text>
-            </View>
-          )}
-        </View>
+        {(ticket?.category || ticket?.rating) && (
+          <View style={styles.tagsRow}>
+            {ticket.category && (
+              <View style={styles.categoryPill}>
+                <Text style={styles.categoryText}>{ticket.category}</Text>
+              </View>
+            )}
+            {ticket.rating && (
+              <View style={styles.ratingPill}>
+                <Ionicons name="star" size={10} color={Colors.warning} />
+                <Text style={styles.ratingText}>{ticket.rating}/5</Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Footer */}
         <View style={styles.footer}>
           <View style={styles.footerLeft}>
-            {showClient && (
+            {showClient && ticket?.clientName && (
               <View style={styles.meta}>
                 <Ionicons name="person-outline" size={12} color={Colors.textTertiary} />
                 <Text style={styles.metaText}>{ticket.clientName}</Text>
               </View>
             )}
-            {ticket.technicianName && (
+            {ticket?.technicianName && (
               <View style={styles.meta}>
                 <Ionicons name="build-outline" size={12} color={Colors.textTertiary} />
                 <Text style={styles.metaText}>{ticket.technicianName}</Text>
               </View>
             )}
           </View>
-          <View style={styles.meta}>
-            <Ionicons name="time-outline" size={12} color={Colors.textTertiary} />
-            <Text style={styles.metaText}>{timeAgo(ticket.updatedAt)}</Text>
-          </View>
+          {ticket?.updatedAt && (
+            <View style={styles.meta}>
+              <Ionicons name="time-outline" size={12} color={Colors.textTertiary} />
+              <Text style={styles.metaText}>{timeAgo(ticket.updatedAt)}</Text>
+            </View>
+          )}
         </View>
       </View>
 
