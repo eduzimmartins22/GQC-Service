@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Button, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useStore } from '../../store/useStore';
 import { TicketCard } from '../../components/cards/TicketCard';
 import { TicketStatus } from '../../types';
@@ -32,6 +33,17 @@ export function TechnicianHomeScreen({ navigation }: any) {
   });
 
   const firstName = user?.name.split(' ')[0];
+
+  // ✅ FUNÇÃO DE LIMPEZA
+  const limparTudo = async () => {
+    try {
+      await AsyncStorage.clear();
+      Alert.alert("Sucesso", "Dados apagados com sucesso!");
+      console.log("LIMPO");
+    } catch (e) {
+      console.log("Erro ao limpar:", e);
+    }
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -92,6 +104,14 @@ export function TechnicianHomeScreen({ navigation }: any) {
           onPress={t => { setSelectedTicket(t); navigation.navigate('TicketDetail', { ticketId: t.id }); }}
         />
       ))}
+
+      {/* ✅ BOTÃO DE LIMPEZA (APENAS DEV) */}
+      {__DEV__ && (
+        <View style={{ marginTop: 40, padding: 16, opacity: 0.6 }}>
+          <Button title="Limpar dados (dev)" onPress={limparTudo} />
+        </View>
+      )}
+
     </ScrollView>
   );
 }
