@@ -14,98 +14,21 @@ const KEY_MESSAGES      = 'gcq_messages';
 // ─── MOCK USERS ────────────────────────────────────────────────────────────────
 const SEED_USERS: (User & { password: string })[] = [
   {
-    id: 'u1', name: 'Carlos Oliveira', cpf: '123.456.789-00',
-    email: 'cliente@isaac.com', password: '123456', role: UserRole.CLIENT,
-    phone: '(11) 99999-0001',
-    address: { cep: '01310-100', street: 'Av. Paulista', number: '1000',
-      complement: 'Apto 42', neighborhood: 'Bela Vista', city: 'São Paulo', state: 'SP' },
-    createdAt: '2024-01-10T10:00:00Z',
-  },
-  {
-    id: 'u2', name: 'Ana Técnica', cpf: '987.654.321-00',
-    email: 'tecnico@isaac.com', password: '123456', role: UserRole.TECHNICIAN,
-    phone: '(11) 99999-0002',
-    address: { cep: '04038-001', street: 'Rua Vergueiro', number: '500',
-      neighborhood: 'Vila Mariana', city: 'São Paulo', state: 'SP' },
-    createdAt: '2024-01-05T08:00:00Z',
-  },
-  {
-    id: 'u3', name: 'Fernanda Lima', cpf: '111.222.333-44',
-    email: 'fernanda@empresa.com', password: '123456', role: UserRole.CLIENT,
-    phone: '(21) 98888-1111',
-    address: { cep: '20040-020', street: 'Av. Rio Branco', number: '156',
-      complement: 'Sala 301', neighborhood: 'Centro', city: 'Rio de Janeiro', state: 'RJ' },
-    createdAt: '2024-02-01T10:00:00Z',
+    id: 'u_isac', name: 'Isac', cpf: '000.000.000-00',
+    email: 'tecnico@gcq.com', password: '123456', role: UserRole.TECHNICIAN,
+    phone: '(27) 9988-5314',
+    address: { cep: '29166654', street: 'Rua Buriti', number: 'S/N',
+      neighborhood: 'Morada de Laranjeiras', city: 'Serra', state: 'ES' },
+    createdAt: '2026-04-01T08:00:00Z',
   },
 ];
 
 const SEED_TICKETS: Ticket[] = [
-  {
-    id: 't1', ticketNumber: '#0001',
-    title: 'Elevador hidráulico — Sem força',
-    description: 'Elevador parou de funcionar de manhã.',
-    status: TicketStatus.IN_PROGRESS, priority: TicketPriority.HIGH,
-    equipmentId: 'elevador', equipmentTitle: 'Elevador',
-    subtypeId: 'hidraulico', subtypeLabel: '1 — Hidráulico',
-    symptoms: ['Sem força', 'Bomba hidráulica não atua'],
-    clientId: 'u1', clientName: 'Carlos Oliveira',
-    clientPhone: '(11) 99999-0001', clientCpf: '123.456.789-00',
-    clientEmail: 'cliente@isaac.com',
-    clientAddress: { cep: '01310-100', street: 'Av. Paulista', number: '1000',
-      complement: 'Apto 42', neighborhood: 'Bela Vista', city: 'São Paulo', state: 'SP' },
-    technicianId: 'u2', technicianName: 'Ana Técnica',
-    createdAt: '2025-03-01T09:00:00Z', updatedAt: '2025-03-01T11:00:00Z',
-    notes: [], messages: [],
-  },
-  {
-    id: 't2', ticketNumber: '#0002',
-    title: 'Compressor — Não está gerando ar',
-    description: '',
-    status: TicketStatus.OPEN, priority: TicketPriority.MEDIUM,
-    equipmentId: 'compressor', equipmentTitle: 'Compressor',
-    subtypeId: 'compressor_geral', subtypeLabel: '4 — Compressor',
-    symptoms: ['Não está gerando ar', 'Elétrico'],
-    clientId: 'u1', clientName: 'Carlos Oliveira',
-    clientPhone: '(11) 99999-0001', clientCpf: '123.456.789-00',
-    clientEmail: 'cliente@isaac.com',
-    clientAddress: { cep: '01310-100', street: 'Av. Paulista', number: '1000',
-      complement: 'Apto 42', neighborhood: 'Bela Vista', city: 'São Paulo', state: 'SP' },
-    createdAt: '2025-03-03T14:00:00Z', updatedAt: '2025-03-03T14:00:00Z',
-    notes: [], messages: [],
-  },
-  {
-    id: 't3', ticketNumber: '#0003',
-    title: 'Balanceadora — Descalibrada',
-    description: '',
-    status: TicketStatus.FINISHED, priority: TicketPriority.LOW,
-    equipmentId: 'balanceadora', equipmentTitle: 'Balanceadora',
-    subtypeId: 'balanc_geral', subtypeLabel: '7 — Balanceadora de pneus',
-    symptoms: ['Descalibrada'],
-    clientId: 'u1', clientName: 'Carlos Oliveira',
-    clientPhone: '(11) 99999-0001', clientCpf: '123.456.789-00',
-    clientEmail: 'cliente@isaac.com',
-    clientAddress: { cep: '01310-100', street: 'Av. Paulista', number: '1000',
-      complement: 'Apto 42', neighborhood: 'Bela Vista', city: 'São Paulo', state: 'SP' },
-    technicianId: 'u2', technicianName: 'Ana Técnica',
-    finalizationNote: 'Balanceadora recalibrada. Refaça a calibração a cada 6 meses ou sempre que trocar de pneus com frequência elevada.',
-    createdAt: '2025-02-28T10:00:00Z', updatedAt: '2025-03-01T15:00:00Z',
-    closedAt: '2025-03-01T15:00:00Z',
-    rating: 5, ratingComment: 'Ótimo atendimento!',
-    notes: [], messages: [],
-  },
+  // Removido: Dados DEMO para começar do zero com cliente real
 ];
 
 const SEED_NOTIFICATIONS: Notification[] = [
-  {
-    id: 'n1', userId: 'u1', title: 'Chamado em andamento',
-    body: 'Seu chamado #0001 foi assumido por Ana Técnica.',
-    ticketId: 't1', read: false, createdAt: '2025-03-01T11:05:00Z',
-  },
-  {
-    id: 'n2', userId: 'u2', title: 'Novo chamado',
-    body: 'Carlos Oliveira abriu: "Compressor — Não está gerando ar"',
-    ticketId: 't2', read: false, createdAt: '2025-03-03T14:05:00Z',
-  },
+  // Removido: Dados DEMO para começar do zero com cliente real
 ];
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────

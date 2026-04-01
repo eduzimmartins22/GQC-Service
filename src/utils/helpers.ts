@@ -70,7 +70,7 @@ export const priorityConfig = {
   },
 };
 
-export const WHATSAPP_NUMBER = '552797475627'; 
+export const WHATSAPP_NUMBER = '5527988525314'; 
 
 export function openWhatsApp(ticketNumber?: string): void {
   const msg = ticketNumber

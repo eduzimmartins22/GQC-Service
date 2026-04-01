@@ -208,13 +208,6 @@ export function LoginScreen({ navigation }: any) {
             </TouchableOpacity>
           )}
 
-          {/* Hint demo */}
-          <View style={styles.hint}>
-            <Text style={styles.hintText}>
-              Demo: cliente@isaac.com / tecnico@isaac.com{'\n'}Senha: 123456
-            </Text>
-          </View>
-
           {/* Link cadastro */}
           <Text style={styles.registerHint}>
             Não tem conta?{' '}
@@ -278,9 +271,6 @@ const styles = StyleSheet.create({
 
   biometricBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, marginTop: Spacing.md, padding: Spacing.md, backgroundColor: Colors.primaryLight, borderRadius: Radii.lg },
   biometricBtnText: { fontSize: Typography.base, fontWeight: '700', color: Colors.primary },
-
-  hint:     { marginTop: Spacing.lg, padding: Spacing.md, backgroundColor: Colors.primaryLight, borderRadius: Radii.md },
-  hintText: { fontSize: Typography.xs, color: Colors.primary, textAlign: 'center', lineHeight: 18 },
 
   registerHint: { textAlign: 'center', marginTop: Spacing.lg, fontSize: Typography.sm, color: Colors.textSecondary },
   registerLink: { color: Colors.primary, fontWeight: '700' },

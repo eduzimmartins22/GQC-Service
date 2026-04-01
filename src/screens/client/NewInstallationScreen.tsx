@@ -79,7 +79,7 @@ export function NewInstallationScreen({ navigation }: any) {
 
       {/* Progress bar */}
       <View style={styles.progressWrap}>
-        {['Categoria', 'Tipo', 'Detalhes'].map((label, i) => (
+        {['Instalação', 'Tipo', 'Detalhes'].map((label, i) => (
           <View key={i} style={styles.progressItem}>
             <View style={[styles.progressDot, i <= stepIndex && styles.progressDotActive]}>
               {i < stepIndex

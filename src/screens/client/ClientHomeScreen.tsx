@@ -79,8 +79,25 @@ export function ClientHomeScreen({ navigation }: any) {
         </TouchableOpacity>
       )}
 
-      {/* New ticket CTA */}
-      <Button label="+ Abrir Novo Chamado" onPress={() => navigation.navigate('NewTicket')} fullWidth size="lg" style={styles.newBtn} />
+      {/* Action Buttons */}
+      <View style={styles.actionsRow}>
+        <Button 
+          label="+ Novo Chamado" 
+          onPress={() => navigation.navigate('NewTicket')} 
+          fullWidth 
+          size="lg" 
+          style={{ flex: 1 }}
+          icon="tools-outline"
+        />
+        <Button 
+          label="+ Instalação" 
+          onPress={() => navigation.navigate('NewInstallation')} 
+          fullWidth 
+          size="lg" 
+          style={{ flex: 1 }}
+          icon="hammer-outline"
+        />
+      </View>
 
       {/* Active tickets */}
       <View style={styles.section}>
@@ -124,7 +141,7 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: Typography.xs, fontWeight: '600', marginTop: 2, textAlign: 'center' },
   ratingBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, backgroundColor: '#FFFBEB', borderRadius: Radii.md, padding: Spacing.md, marginBottom: Spacing.md, borderWidth: 1, borderColor: '#FDE68A' },
   ratingBannerText: { flex: 1, fontSize: Typography.sm, fontWeight: '600', color: Colors.warning },
-  newBtn: { marginBottom: Spacing.xl },
+  actionsRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.xl },
   section: {},
   sectionTitle: { fontSize: Typography.md, fontWeight: '700', color: Colors.textPrimary, marginBottom: Spacing.md },
   emptyState: { alignItems: 'center', paddingVertical: Spacing.xxxl, gap: Spacing.sm },
