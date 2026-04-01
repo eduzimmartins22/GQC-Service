@@ -23,7 +23,7 @@ const SEED_USERS: (User & { password: string })[] = [
   },
   {
       id: 'u_tecnico', name: 'Tecnico2', cpf: '111.111.111-11',
-    email: 'tecnico@gcq.com', password: '123456', role: UserRole.TECHNICIAN,
+    email: 'tecnico2@gcq.com', password: '232323', role: UserRole.TECHNICIAN,
     phone: '(27) 9988-5314',
     address: { cep: '29166654', street: 'Rua Buriti', number: 'S/N',
       neighborhood: 'Morada de Laranjeiras', city: 'Serra', state: 'ES' },
