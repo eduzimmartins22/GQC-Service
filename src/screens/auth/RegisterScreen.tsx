@@ -161,153 +161,11 @@ export function RegisterScreen({ navigation }: any) {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Dados pessoais</Text>
 
-          <Field
-            label="Nome completo *"
-            icon="person-outline"
-            value={name}
-            onChangeText={(v) => { setName(v); setFieldErrors({ ...fieldErrors, name: '' }); }}
-            placeholder="Seu nome completo"
-            error={fieldErrors.name}
-          />
-          <Field
-            label="CPF *"
-            icon="card-outline"
-            value={cpf}
-            onChangeText={(v) => { setCpf(formatCPF(v)); setFieldErrors({ ...fieldErrors, cpf: '' }); }}
-            placeholder="000.000.000-00"
-            keyboardType="numeric"
-            maxLength={14}
-            autoCapitalize="none"
-            error={fieldErrors.cpf}
-          />
-          <Field
-            label="Telefone / WhatsApp *"
-            icon="call-outline"
-            value={phone}
-            onChangeText={(v) => { setPhone(formatPhone(v)); setFieldErrors({ ...fieldErrors, phone: '' }); }}
-            placeholder="(00) 00000-0000"
-            keyboardType="phone-pad"
-            maxLength={15}
-            error={fieldErrors.phone}
-          />
-          <Field
-            label="E-mail *"
-            icon="mail-outline"
-            value={email}
-            onChangeText={(v) => { setEmail(v); setFieldErrors({ ...fieldErrors, email: '' }); }}
-            placeholder="seu@email.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            error={fieldErrors.email}
-          />
-          <Field
-            label="Senha *"
-            icon="lock-closed-outline"
-            value={password}
-            onChangeText={(v) => { setPassword(v); setFieldErrors({ ...fieldErrors, password: '' }); }}
-            placeholder="Mínimo 6 caracteres"
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            error={fieldErrors.password}
-            rightIcon={
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
-                <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color={Colors.textTertiary} />
-              </TouchableOpacity>
-            }
-          />
-        </View>
-
-        <View style={[styles.card, { marginTop: Spacing.md }]}>
-          <Text style={styles.sectionTitle}>Localização</Text>
-
-          <Field
-            label="CEP *"
-            icon="location-outline"
-            value={cep}
-            onChangeText={(v) => { setCep(formatCEP(v)); setFieldErrors({ ...fieldErrors, cep: '' }); }}
-            placeholder="00000-000"
-            keyboardType="numeric"
-            maxLength={9}
-            error={fieldErrors.cep}
-          />
-          <Field
-            label="Número *"
-            icon="home-outline"
-            value={addressNumber}
-            onChangeText={(v) => { setAddressNumber(v); setFieldErrors({ ...fieldErrors, addressNumber: '' }); }}
-            placeholder="Ex: 42"
-            keyboardType="numeric"
-            error={fieldErrors.addressNumber}
-          />
-          <Field
-            label="Complemento"
-            icon="business-outline"
-            value={complement}
-            onChangeText={setComplement}
-            placeholder="Apto, Sala, Bloco... (opcional)"
-          />
-        </View>
-
-        {fieldErrors.form ? (
-          <View style={styles.errorBanner}>
-            <Ionicons name="alert-circle-outline" size={16} color={Colors.error} />
-            <Text style={styles.errorText}>{fieldErrors.form}</Text>
-          </View>
-        ) : null}
-
-        <Button
-          label={isLoading ? 'Cadastrando...' : 'Criar conta'}
-          onPress={handleRegister}
-          disabled={!isValid || isLoading}
-          fullWidth
-          size="lg"
-          style={{ marginTop: Spacing.lg }}
-        />
-
-        <Text style={styles.loginHint}>
-          Já tem conta?{' '}
-          <Text style={styles.loginLink} onPress={() => navigation.goBack()}>Entrar</Text>
-        </Text>
-      </ScrollView>
-    </KeyboardAvoidingView>
-  );
-}
-
-  return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: Colors.background }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={Colors.primary} />
-        </TouchableOpacity>
-
-        <View style={styles.header}>
-          <Text style={styles.title}>Criar conta</Text>
-          <Text style={styles.subtitle}>Preencha seus dados para continuar</Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Dados pessoais</Text>
-
           <Field label="Nome completo *" icon="person-outline" value={name} onChangeText={(v) => { setName(v); setFieldErrors({ ...fieldErrors, name: '' }); }} placeholder="Seu nome completo" error={fieldErrors.name} />
           <Field label="CPF *" icon="card-outline" value={cpf} onChangeText={(v) => { setCpf(formatCPF(v)); setFieldErrors({ ...fieldErrors, cpf: '' }); }} placeholder="000.000.000-00" keyboardType="numeric" maxLength={14} autoCapitalize="none" error={fieldErrors.cpf} />
           <Field label="Telefone / WhatsApp *" icon="call-outline" value={phone} onChangeText={(v) => { setPhone(formatPhone(v)); setFieldErrors({ ...fieldErrors, phone: '' }); }} placeholder="(00) 00000-0000" keyboardType="phone-pad" maxLength={15} error={fieldErrors.phone} />
           <Field label="E-mail *" icon="mail-outline" value={email} onChangeText={(v) => { setEmail(v); setFieldErrors({ ...fieldErrors, email: '' }); }} placeholder="seu@email.com" keyboardType="email-address" autoCapitalize="none" error={fieldErrors.email} />
-          <Field
-            label="Senha *"
-            icon="lock-closed-outline"
-            value={password}
-            onChangeText={(v) => { setPassword(v); setFieldErrors({ ...fieldErrors, password: '' }); }}
-            placeholder="Mínimo 6 caracteres"
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            error={fieldErrors.password}
-            rightIcon={
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
-                <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color={Colors.textTertiary} />
-              </TouchableOpacity>
-            }
-          />
+          <Field label="Senha *" icon="lock-closed-outline" value={password} onChangeText={(v) => { setPassword(v); setFieldErrors({ ...fieldErrors, password: '' }); }} placeholder="Mínimo 6 caracteres" secureTextEntry={!showPassword} autoCapitalize="none" error={fieldErrors.password} rightIcon={<TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}><Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color={Colors.textTertiary} /></TouchableOpacity>} />
         </View>
 
         <View style={[styles.card, { marginTop: Spacing.md }]}>
@@ -325,14 +183,7 @@ export function RegisterScreen({ navigation }: any) {
           </View>
         ) : null}
 
-        <Button
-          label={isLoading ? 'Cadastrando...' : 'Criar conta'}
-          onPress={handleRegister}
-          disabled={!isValid || isLoading}
-          fullWidth
-          size="lg"
-          style={{ marginTop: Spacing.lg }}
-        />
+        <Button label={isLoading ? 'Cadastrando...' : 'Criar conta'} onPress={handleRegister} disabled={!isValid || isLoading} fullWidth size="lg" style={{ marginTop: Spacing.lg }} />
 
         <Text style={styles.loginHint}>
           Já tem conta?{' '}
@@ -341,7 +192,6 @@ export function RegisterScreen({ navigation }: any) {
       </ScrollView>
     </KeyboardAvoidingView>
   );
-}
 }
 
 const styles = StyleSheet.create({
