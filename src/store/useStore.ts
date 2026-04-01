@@ -22,7 +22,7 @@ const SEED_USERS: (User & { password: string })[] = [
     createdAt: '2026-04-01T08:00:00Z',
   },
   {
-    id: 'u_tecnico', name: 'Tecnico2', cpf: '111.111.111-11',
+      id: 'u_tecnico', name: 'Tecnico2', cpf: '111.111.111-11',
     email: 'tecnico@gcq.com', password: '123456', role: UserRole.TECHNICIAN,
     phone: '(27) 9988-5314',
     address: { cep: '29166654', street: 'Rua Buriti', number: 'S/N',

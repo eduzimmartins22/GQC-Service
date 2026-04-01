@@ -12,6 +12,7 @@ import { LoginScreen }           from '../screens/auth/LoginScreen';
 import { RegisterScreen }        from '../screens/auth/RegisterScreen';
 import { ClientHomeScreen }      from '../screens/client/ClientHomeScreen';
 import { NewTicketScreen }       from '../screens/client/NewTicketScreen';
+import { NewInstallationScreen }  from '../screens/client/NewInstallationScreen';
 import { TechnicianHomeScreen }  from '../screens/technician/TechnicianHomeScreen';
 import { ClientsByTechScreen }   from '../screens/technician/ClientsByTechScreen';
 import { ClientTicketsScreen }   from '../screens/technician/ClientTicketsScreen';
@@ -125,6 +126,7 @@ export function AppNavigator() {
             <Stack.Screen name="ClientTabs"   component={ClientTabs} />
             <Stack.Screen name="TicketDetail" component={TicketDetailScreen}  options={{ ...hdr, headerTitle: 'Chamado' }} />
             <Stack.Screen name="NewTicket"    component={NewTicketScreen}     options={{ ...hdr, headerTitle: 'Novo chamado' }} />
+            <Stack.Screen name="NewInstallation" component={NewInstallationScreen} options={{ ...hdr, headerTitle: 'Nova instalação' }} />
             <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ ...hdr, headerTitle: 'Notificações' }} />
             <Stack.Screen name="RateTicket"   component={RateTicketScreen}    options={{ ...hdr, headerTitle: 'Avaliar atendimento' }} />
             <Stack.Screen name="Tracking"     component={TrackingScreen}      options={{ headerShown: false }} />

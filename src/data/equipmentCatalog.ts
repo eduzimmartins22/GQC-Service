@@ -152,4 +152,19 @@ export const EQUIPMENT_CATALOG: EquipmentCategory[] = [
       },
     ],
   },
+  {
+    id: 'outros',
+    title: 'Outros',
+    icon: 'ellipsis-horizontal-outline',
+    color: '#666666',
+    subtypes: [
+      {
+        id: 'outros_geral',
+        label: 'Outros',
+        symptoms: [
+          { id: 'o_descricao', label: 'Descrever no campo observações' },
+        ],
+      },
+    ],
+  },
 ];
