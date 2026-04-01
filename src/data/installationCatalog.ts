@@ -49,4 +49,11 @@ export const INSTALLATION_CATALOG: InstallationCategory[] = [
       { id: 'balanceadora_inst', label: 'Balanceadora de rodas' },
     ],
   },
+  {
+    id: 'outros_inst',
+    title: 'Outros',
+    icon: 'ellipsis-horizontal-outline',
+    color: '#666666',
+    items: [],
+  },
 ];

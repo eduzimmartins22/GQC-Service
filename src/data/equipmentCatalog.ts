@@ -23,7 +23,7 @@ export const EQUIPMENT_CATALOG: EquipmentCategory[] = [
     id: 'elevador',
     title: 'Elevador',
     icon: 'arrow-up-circle-outline',
-    image: require('../../assets/elevador.jpg'),
+    image: require('../../assets/elevador.png'),
     color: '#8C1C2E',
     subtypes: [
       {
@@ -61,7 +61,7 @@ export const EQUIPMENT_CATALOG: EquipmentCategory[] = [
     id: 'compressor',
     title: 'Compressor',
     icon: 'hardware-chip-outline',
-    image: require('../../assets/compressor.jpg'),
+    image: require('../../assets/compressor.png'),
     color: '#B02540',
     subtypes: [
       {
@@ -80,7 +80,7 @@ export const EQUIPMENT_CATALOG: EquipmentCategory[] = [
     id: 'rampa',
     title: 'Rampa',
     icon: 'car-outline',
-    image: require('../../assets/rampa.jpg'),
+    image: require('../../assets/rampa.png'),
     color: '#5E1020',
     subtypes: [
       {
@@ -101,7 +101,7 @@ export const EQUIPMENT_CATALOG: EquipmentCategory[] = [
     id: 'desmontadora',
     title: 'Desmontadora',
     icon: 'settings-outline',
-    image: require('../../assets/desmontadoraP.jpg'),
+    image: require('../../assets/desmontadora.png'),
     color: '#8C1C2E',
     subtypes: [
       {
@@ -119,7 +119,7 @@ export const EQUIPMENT_CATALOG: EquipmentCategory[] = [
     id: 'balanceadora',
     title: 'Balanceadora',
     icon: 'speedometer-outline',
-    image: require('../../assets/balanceadoraR.jpg'),
+    image: require('../../assets/balanceadora.png'),
     color: '#B02540',
     subtypes: [
       {

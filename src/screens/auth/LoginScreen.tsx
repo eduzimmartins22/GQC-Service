@@ -8,6 +8,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
 import { useStore } from '../../store/useStore';
 import { Button } from '../../components/common/Button';
+import { LGPDFooter } from '../../components/common/LGPDFooter';
 import { Colors, Typography, Spacing, Radii, Shadows } from '../../constants/theme';
 
 const SAVED_EMAIL_KEY    = 'gcq_saved_email';
@@ -217,6 +218,7 @@ export function LoginScreen({ navigation }: any) {
           </Text>
         </View>
       </ScrollView>
+      <LGPDFooter />
     </KeyboardAvoidingView>
   );
 }
