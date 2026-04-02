@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "ISAAC",
+    "name": "GCQ",
     "slug": "isaac",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -30,8 +30,8 @@
     "ios": {
       "bundleIdentifier": "com.eduardo132.isaac",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "O ISAAC usa sua localização para rastrear o técnico até o cliente.",
-        "NSFaceIDUsageDescription": "Use Face ID para entrar no ISAAC com mais rapidez e segurança."
+        "NSLocationWhenInUseUsageDescription": "O GCQ usa sua localização para rastrear o técnico até o cliente.",
+        "NSFaceIDUsageDescription": "Use Face ID para entrar no GCQ com mais rapidez e segurança."
       },
       "config": {
         "googleMapsApiKey": "SUA_GOOGLE_MAPS_API_KEY_AQUI"
@@ -44,7 +44,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "O ISAAC usa sua localização para rastrear o técnico até o cliente."
+          "locationAlwaysAndWhenInUsePermission": "O GCQ usa sua localização para rastrear o técnico até o cliente."
         }
       ]
     ],
