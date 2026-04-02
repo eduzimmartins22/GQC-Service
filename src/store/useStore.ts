@@ -68,6 +68,17 @@ async function clearStorage() {
   } catch { /* ignore */ }
 }
 
+function mergeSeedUsers(savedUsers: (User & { password: string })[], seedUsers: (User & { password: string })[]) {
+  // Merge: manter usuários salvos E garantir que SEED_USERS existem
+  const merged = [...savedUsers];
+  for (const seedUser of seedUsers) {
+    if (!merged.find(u => u.email.toLowerCase() === seedUser.email.toLowerCase())) {
+      merged.push(seedUser);
+    }
+  }
+  return merged;
+}
+
 // ─── STORE INTERFACE ───────────────────────────────────────────────────────────
 interface StoreState {
   user: User | null;
@@ -85,6 +96,7 @@ interface StoreState {
   login: (email: string, password: string) => Promise<boolean>;
   register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  clearAllTickets: () => Promise<void>;
 
   // Tickets
   setSelectedTicket: (ticket: Ticket | null) => void;
@@ -128,6 +140,12 @@ export const useStore = create<StoreState>((set, get) => ({
     const tickets       = await load(KEY_TICKETS,       SEED_TICKETS);
     const notifications = await load(KEY_NOTIFICATIONS, SEED_NOTIFICATIONS);
     const messages      = await load(KEY_MESSAGES,      {});
+    
+    // Garantir que SEED_USERS existem no AsyncStorage
+    const savedUsers = await load<(User & { password: string })[]>(KEY_USERS, []);
+    const merged = mergeSeedUsers(savedUsers, SEED_USERS);
+    await save(KEY_USERS, merged);
+    
     set({ tickets, notifications, allMessages: messages, hydrated: true });
   },
 
@@ -175,6 +193,11 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   logout: () => set({ user: null, isAuthenticated: false, selectedTicket: null }),
+
+  clearAllTickets: async () => {
+    await save(KEY_TICKETS, []);
+    set({ tickets: [] });
+  },
 
   // ── Tickets
   setSelectedTicket: (ticket) => set({ selectedTicket: ticket }),
