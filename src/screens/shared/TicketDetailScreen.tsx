@@ -57,7 +57,18 @@ export function TicketDetailScreen({ route, navigation }: any) {
   const handleMapsLink = () => {
     const addr = ticket.clientAddress;
     if (!addr) return;
-    const query = encodeURIComponent(`${addr.street} ${addr.number}, ${addr.neighborhood}, ${addr.city} - ${addr.state}`);
+    // Construir endereço filtrando campos vazios
+    const parts = [
+      addr.street,
+      addr.number,
+      addr.complement,
+      addr.neighborhood,
+      addr.city,
+      addr.state,
+      addr.cep,
+    ].filter(p => p && p.trim() !== '');
+    const query = encodeURIComponent(parts.join(', '));
+    if (!query) return;
     Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`);
   };
 

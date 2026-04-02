@@ -22,13 +22,21 @@ const SEED_USERS: (User & { password: string })[] = [
     createdAt: '2026-04-01T08:00:00Z',
   },
   {
-      id: 'u_tecnico', name: 'Tecnico2', cpf: '111.111.111-11',
+    id: 'u_tecnico', name: 'Tecnico2', cpf: '111.111.111-11',
     email: 'tecnico2@gcq.com', password: '232323', role: UserRole.TECHNICIAN,
     phone: '(27) 9988-5314',
     address: { cep: '29166654', street: 'Rua Buriti', number: 'S/N',
       neighborhood: 'Morada de Laranjeiras', city: 'Serra', state: 'ES' },
     createdAt: '2026-04-01T08:30:00Z',
   },
+  {
+    id: 'u_Chico', name: 'Chico', cpf: '222.222.222-22',
+    email: 'chico@gmail.com', password: '123123', role: UserRole.CLIENT,
+    phone: '(27) 9988-5314',
+    address: { cep: '29166654', street: 'Rua Buriti', number: 'S/N',
+      neighborhood: 'Morada de Laranjeiras', city: 'Serra', state: 'ES' },
+    createdAt: '2026-04-01T08:30:00Z',
+  }
 ];
 
 const SEED_TICKETS: Ticket[] = [
@@ -49,6 +57,15 @@ async function load<T>(key: string, fallback: T): Promise<T> {
 
 async function save(key: string, value: any) {
   try { await AsyncStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ }
+}
+
+async function clearStorage() {
+  try {
+    await AsyncStorage.removeItem(KEY_USERS);
+    await AsyncStorage.removeItem(KEY_TICKETS);
+    await AsyncStorage.removeItem(KEY_NOTIFICATIONS);
+    await AsyncStorage.removeItem(KEY_MESSAGES);
+  } catch { /* ignore */ }
 }
 
 // ─── STORE INTERFACE ───────────────────────────────────────────────────────────
@@ -118,6 +135,7 @@ export const useStore = create<StoreState>((set, get) => ({
   login: async (email, password) => {
     set({ isLoading: true, authError: null });
     await new Promise(r => setTimeout(r, 600));
+    // Carregar usuários do AsyncStorage (inclui novos cadastros)
     const users = await load<(User & { password: string })[]>(KEY_USERS, SEED_USERS);
     const found = users.find(u =>
       u.email.toLowerCase() === email.toLowerCase() && u.password === password
@@ -195,7 +213,7 @@ export const useStore = create<StoreState>((set, get) => ({
 
     const newNotif: Notification = {
       id: `n${Date.now()}`, userId: 'u2',
-      title: '🔧 Novo chamado aberto',
+      title: ' Novo chamado aberto',
       body: `${user.name}: ${autoTitle}`,
       ticketId: newTicket.id, read: false,
       createdAt: new Date().toISOString(),
@@ -222,11 +240,11 @@ export const useStore = create<StoreState>((set, get) => ({
     if (ticket) {
       if (status === TicketStatus.IN_PROGRESS) {
         newNotifs.push({ id: `n${Date.now()}`, userId: ticket.clientId,
-          title: '🚀 Técnico a caminho', body: `Seu chamado ${ticket.ticketNumber} foi assumido!`,
+          title: ' Técnico a caminho', body: `Seu chamado ${ticket.ticketNumber} foi assumido!`,
           ticketId, read: false, createdAt: new Date().toISOString() });
       } else if (status === TicketStatus.FINISHED) {
         newNotifs.push({ id: `n${Date.now()+1}`, userId: ticket.clientId,
-          title: '✅ Chamado finalizado', body: `${ticket.ticketNumber} foi finalizado. Veja as instruções.`,
+          title: ' Chamado finalizado', body: `${ticket.ticketNumber} foi finalizado. Veja as instruções.`,
           ticketId, read: false, createdAt: new Date().toISOString() });
       }
     }
@@ -288,7 +306,7 @@ export const useStore = create<StoreState>((set, get) => ({
       if (recipientId) {
         const notif: Notification = {
           id: `n${Date.now()}`, userId: recipientId,
-          title: `💬 ${user.name}`,
+          title: ` ${user.name}`,
           body: content.trim().slice(0, 60),
           ticketId, read: false, createdAt: new Date().toISOString(),
         };
