@@ -260,22 +260,7 @@ export function NewTicketScreen({ navigation }: any) {
                 value={isOther ? otherText : symptoms.join(' • ')} />
             </View>
 
-            {/* Distance field */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Distância aproximada (ida e volta) <Text style={styles.optional}>(opcional)</Text></Text>
-              <View style={styles.distanceInputRow}>
-                <TextInput
-                  style={styles.distanceInput}
-                  value={distanceKm}
-                  onChangeText={setDistanceKm}
-                  placeholder="Ex: 75"
-                  placeholderTextColor={Colors.textTertiary}
-                  keyboardType="number-pad"
-                  maxLength={3}
-                />
-                <Text style={styles.distanceUnit}>KM</Text>
-              </View>
-            </View>
+           
 
             {/* Distance Warning */}
             {distanceKm && parseInt(distanceKm) > 0 && (
