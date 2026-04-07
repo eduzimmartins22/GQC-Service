@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store/useStore';
 import { Button } from '../../components/common/Button';
 import { Colors, Typography, Spacing, Radii, Shadows } from '../../constants/theme';
-import { validateCPF, validateCEP, validateEmail, validatePhone, validateRequired } from '../../utils/validations';
+import { validateCPF, validateCNPJ, validateCEP, validateEmail, validatePhone, validateRequired } from '../../utils/validations';
 
 function formatCPF(v: string) {
   const d = v.replace(/\D/g, '').slice(0, 11);
@@ -15,6 +15,15 @@ function formatCPF(v: string) {
   if (d.length <= 6) return `${d.slice(0,3)}.${d.slice(3)}`;
   if (d.length <= 9) return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6)}`;
   return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`;
+}
+
+function formatCNPJ(v: string) {
+  const d = v.replace(/\D/g, '').slice(0, 14);
+  if (d.length <= 2) return d;
+  if (d.length <= 5) return `${d.slice(0,2)}.${d.slice(2)}`;
+  if (d.length <= 8) return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5)}`;
+  if (d.length <= 12) return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8)}`;
+  return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12)}`;
 }
 
 function formatPhone(v: string) {
@@ -77,6 +86,7 @@ function Field({ label, icon, value, onChangeText, placeholder, keyboardType, se
 export function RegisterScreen({ navigation }: any) {
   const [name, setName] = useState('');
   const [cpf, setCpf] = useState('');
+  const [isCNPJ, setIsCNPJ] = useState(false);
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -94,8 +104,13 @@ export function RegisterScreen({ navigation }: any) {
     const nameValidation = validateRequired(name, 'Nome');
     if (!nameValidation.valid) errors.name = nameValidation.message;
 
-    const cpfValidation = validateCPF(cpf);
-    if (!cpfValidation.valid) errors.cpf = cpfValidation.message;
+    if (isCNPJ) {
+      const cnpjValidation = validateCNPJ(cpf);
+      if (!cnpjValidation.valid) errors.cpf = cnpjValidation.message;
+    } else {
+      const cpfValidation = validateCPF(cpf);
+      if (!cpfValidation.valid) errors.cpf = cpfValidation.message;
+    }
 
     const phoneValidation = validatePhone(phone);
     if (!phoneValidation.valid) errors.phone = phoneValidation.message;
@@ -123,6 +138,7 @@ export function RegisterScreen({ navigation }: any) {
     const result = await register({
       name: name.trim(),
       cpf,
+      cnpj: isCNPJ ? cpf : undefined,
       email: email.trim().toLowerCase(),
       phone,
       password,
@@ -162,7 +178,43 @@ export function RegisterScreen({ navigation }: any) {
           <Text style={styles.sectionTitle}>Dados pessoais</Text>
 
           <Field label="Nome completo *" icon="person-outline" value={name} onChangeText={(v) => { setName(v); setFieldErrors({ ...fieldErrors, name: '' }); }} placeholder="Seu nome completo" error={fieldErrors.name} />
-          <Field label="CPF *" icon="card-outline" value={cpf} onChangeText={(v) => { setCpf(formatCPF(v)); setFieldErrors({ ...fieldErrors, cpf: '' }); }} placeholder="000.000.000-00" keyboardType="numeric" maxLength={14} autoCapitalize="none" error={fieldErrors.cpf} />
+          
+          {/* CPF/CNPJ toggle */}
+          <View style={styles.fieldGroup}>
+            <View style={styles.fieldLabelRow}>
+              <Text style={styles.label}>{isCNPJ ? 'CNPJ' : 'CPF'} *</Text>
+              <TouchableOpacity 
+                style={styles.toggleBtn}
+                onPress={() => { setCpf(''); setIsCNPJ(!isCNPJ); setFieldErrors({ ...fieldErrors, cpf: '' }); }}
+              >
+                <Text style={styles.toggleBtnText}>{isCNPJ ? 'Usar CPF' : 'Usar CNPJ'}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={[styles.inputWrapper, fieldErrors.cpf ? styles.inputWrapperError : {}]}>
+              <Ionicons name="card-outline" size={16} color={fieldErrors.cpf ? Colors.error : Colors.textTertiary} style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                value={cpf}
+                onChangeText={(v) => { 
+                  setCpf(isCNPJ ? formatCNPJ(v) : formatCPF(v));
+                  setFieldErrors({ ...fieldErrors, cpf: '' });
+                }}
+                placeholder={isCNPJ ? "00.000.000/0000-00" : "000.000.000-00"}
+                placeholderTextColor={Colors.textTertiary}
+                keyboardType="numeric"
+                maxLength={isCNPJ ? 18 : 14}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+            {fieldErrors.cpf && fieldErrors.cpf.length > 0 ? (
+              <View style={styles.errorMsg}>
+                <Ionicons name="alert-circle-outline" size={12} color={Colors.error} />
+                <Text style={styles.errorMsgText}>{fieldErrors.cpf}</Text>
+              </View>
+            ) : null}
+          </View>
+
           <Field label="Telefone / WhatsApp *" icon="call-outline" value={phone} onChangeText={(v) => { setPhone(formatPhone(v)); setFieldErrors({ ...fieldErrors, phone: '' }); }} placeholder="(00) 00000-0000" keyboardType="phone-pad" maxLength={15} error={fieldErrors.phone} />
           <Field label="E-mail *" icon="mail-outline" value={email} onChangeText={(v) => { setEmail(v); setFieldErrors({ ...fieldErrors, email: '' }); }} placeholder="seu@email.com" keyboardType="email-address" autoCapitalize="none" error={fieldErrors.email} />
           <Field label="Senha *" icon="lock-closed-outline" value={password} onChangeText={(v) => { setPassword(v); setFieldErrors({ ...fieldErrors, password: '' }); }} placeholder="Mínimo 6 caracteres" secureTextEntry={!showPassword} autoCapitalize="none" error={fieldErrors.password} rightIcon={<TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}><Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color={Colors.textTertiary} /></TouchableOpacity>} />
@@ -209,7 +261,10 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: Typography.sm, fontWeight: '700', color: Colors.textSecondary, marginBottom: Spacing.md, textTransform: 'uppercase', letterSpacing: 0.5 },
   fieldGroup: { marginBottom: Spacing.md },
-  label: { fontSize: Typography.sm, fontWeight: '600', color: Colors.textPrimary, marginBottom: 6 },
+  fieldLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  label: { fontSize: Typography.sm, fontWeight: '600', color: Colors.textPrimary },
+  toggleBtn: { paddingHorizontal: Spacing.sm, paddingVertical: 4, backgroundColor: Colors.primary, borderRadius: Radii.sm },
+  toggleBtnText: { fontSize: Typography.xs, fontWeight: '600', color: Colors.white },
   inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.background, borderWidth: 1.5, borderColor: Colors.border, borderRadius: Radii.md, paddingHorizontal: Spacing.md },
   inputWrapperError: { borderColor: Colors.error, backgroundColor: Colors.errorBg },
   inputIcon: { marginRight: Spacing.sm },

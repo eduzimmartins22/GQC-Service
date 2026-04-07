@@ -16,6 +16,19 @@ export function ClientsByTechScreen({ navigation }: any) {
     c.clientName.toLowerCase().includes(search.toLowerCase())
   );
 
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('ClearClients')}
+          style={{ marginRight: Spacing.md }}
+        >
+          <Ionicons name="trash-outline" size={24} color={Colors.primary} />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+
   return (
     <View style={styles.container}>
       {/* Search bar */}

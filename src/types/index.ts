@@ -145,6 +145,7 @@ export interface LoginCredentials {
 export interface RegisterData {
   name: string;
   cpf: string;
+  cnpj?: string;
   email: string;
   phone: string;
   password: string;

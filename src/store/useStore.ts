@@ -97,6 +97,7 @@ interface StoreState {
   register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   clearAllTickets: () => Promise<void>;
+  clearClients: (clientIds: string[]) => Promise<void>;
 
   // Tickets
   setSelectedTicket: (ticket: Ticket | null) => void;
@@ -123,6 +124,7 @@ interface StoreState {
   // Selectors
   getMyTickets: () => Ticket[];
   getClientTickets: (clientId: string) => Ticket[];
+  getAllClients: () => Promise<User[]>;
   getClientsWithTickets: () => { clientId: string; clientName: string; tickets: Ticket[] }[];
   getMyNotifications: () => Notification[];
   getUnreadCount: () => number;
@@ -172,12 +174,13 @@ export const useStore = create<StoreState>((set, get) => ({
     set({ isLoading: true });
     await new Promise(r => setTimeout(r, 800));
     const users = await load<(User & { password: string })[]>(KEY_USERS, SEED_USERS);
+    const identifier = data.cnpj || data.cpf;
     const exists = users.find(u =>
-      u.email.toLowerCase() === data.email.toLowerCase() || u.cpf === data.cpf
+      u.email.toLowerCase() === data.email.toLowerCase() || u.cpf === identifier
     );
-    if (exists) { set({ isLoading: false }); return { success: false, error: 'E-mail ou CPF já cadastrado.' }; }
+    if (exists) { set({ isLoading: false }); return { success: false, error: `E-mail ou ${data.cnpj ? 'CNPJ' : 'CPF'} já cadastrado.` }; }
     const newUser: User & { password: string } = {
-      id: `u${Date.now()}`, name: data.name, cpf: data.cpf,
+      id: `u${Date.now()}`, name: data.name, cpf: identifier,
       email: data.email, phone: data.phone, password: data.password,
       role: UserRole.CLIENT,
       address: { cep: data.cep, street: '', number: data.addressNumber,
@@ -197,6 +200,17 @@ export const useStore = create<StoreState>((set, get) => ({
   clearAllTickets: async () => {
     await save(KEY_TICKETS, []);
     set({ tickets: [] });
+  },
+
+  clearClients: async (clientIds: string[]) => {
+    const users = await load<(User & { password: string })[]>(KEY_USERS, SEED_USERS);
+    const filteredUsers = users.filter(u => !clientIds.includes(u.id));
+    await save(KEY_USERS, filteredUsers);
+    // Also remove tickets from these clients
+    const { tickets } = get();
+    const filteredTickets = tickets.filter(t => !clientIds.includes(t.clientId));
+    set({ tickets: filteredTickets });
+    await save(KEY_TICKETS, filteredTickets);
   },
 
   // ── Tickets
@@ -371,6 +385,10 @@ export const useStore = create<StoreState>((set, get) => ({
     return tickets.filter(t => t.clientId === user.id);
   },
   getClientTickets: (clientId) => get().tickets.filter(t => t.clientId === clientId),
+  getAllClients: async () => {
+    const users = await load<(User & { password: string })[]>(KEY_USERS, SEED_USERS);
+    return users.filter(u => u.role === UserRole.CLIENT).map(({ password: _, ...user }) => user);
+  },
   getClientsWithTickets: () => {
     const { tickets } = get();
     const map = new Map<string, { clientId: string; clientName: string; tickets: Ticket[] }>();

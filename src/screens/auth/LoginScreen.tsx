@@ -216,6 +216,11 @@ export function LoginScreen({ navigation }: any) {
               Criar conta
             </Text>
           </Text>
+
+          {/* Link esqueci senha */}
+          <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={styles.forgotPassword}>
+            <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
       <LGPDFooter />
@@ -276,4 +281,7 @@ const styles = StyleSheet.create({
 
   registerHint: { textAlign: 'center', marginTop: Spacing.lg, fontSize: Typography.sm, color: Colors.textSecondary },
   registerLink: { color: Colors.primary, fontWeight: '700' },
+
+  forgotPassword: { marginTop: Spacing.md },
+  forgotPasswordText: { textAlign: 'center', fontSize: Typography.sm, color: Colors.primary, fontWeight: '600' },
 });
