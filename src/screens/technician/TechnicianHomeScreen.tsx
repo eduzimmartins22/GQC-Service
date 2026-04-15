@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store/useStore';
 import { TicketCard } from '../../components/cards/TicketCard';
@@ -17,7 +17,7 @@ const TABS: { key: FilterTab; label: string }[] = [
 
 export function TechnicianHomeScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
-  const { user, tickets, setSelectedTicket, getUnreadCount, clearAllTickets } = useStore();
+  const { user, tickets, setSelectedTicket, getUnreadCount } = useStore();
   const unread = getUnreadCount();
 
   const open = tickets.filter(t => t.status === TicketStatus.OPEN).length;
@@ -32,13 +32,6 @@ export function TechnicianHomeScreen({ navigation }: any) {
   });
 
   const firstName = user?.name.split(' ')[0];
-
-  const handleClearTickets = () => {
-    Alert.alert('Limpar chamados', 'Deseja remover TODOS os chamados? Esta ação não pode ser desfeita.', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Limpar', style: 'destructive', onPress: clearAllTickets },
-    ]);
-  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -92,36 +85,13 @@ export function TechnicianHomeScreen({ navigation }: any) {
           <Ionicons name="checkmark-circle-outline" size={48} color={Colors.statusFinished} />
           <Text style={styles.emptyText}>Nenhum chamado nesta categoria.</Text>
         </View>
-      ) : (
-        <>
-          {sorted.map(ticket => (
-            <TicketCard
-              key={ticket.id}
-              ticket={ticket}
-              onPress={t => { setSelectedTicket(t); navigation.navigate('TicketDetail', { ticketId: t.id }); }}
-            />
-          ))}
-          <TouchableOpacity 
-            style={{ 
-              flexDirection: 'row', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              gap: Spacing.sm, 
-              marginTop: Spacing.lg, 
-              padding: Spacing.base, 
-              backgroundColor: Colors.errorBg, 
-              borderRadius: Radii.lg, 
-              borderWidth: 1, 
-              borderColor: Colors.errorLight 
-            }} 
-            onPress={handleClearTickets} 
-            activeOpacity={0.8}
-          >
-            <Ionicons name="trash-outline" size={20} color={Colors.error} />
-            <Text style={{ fontSize: Typography.base, fontWeight: '600', color: Colors.error }}>Limpar chamados</Text>
-          </TouchableOpacity>
-        </>
-      )}
+      ) : sorted.map(ticket => (
+        <TicketCard
+          key={ticket.id}
+          ticket={ticket}
+          onPress={t => { setSelectedTicket(t); navigation.navigate('TicketDetail', { ticketId: t.id }); }}
+        />
+      ))}
     </ScrollView>
   );
 }

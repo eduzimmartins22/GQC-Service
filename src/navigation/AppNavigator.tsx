@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,18 +7,16 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { useStore } from '../store/useStore';
 import { UserRole } from '../types';
-import { Colors, Spacing, Radii, Typography } from '../constants/theme';
 
 import { LoginScreen }           from '../screens/auth/LoginScreen';
 import { RegisterScreen }        from '../screens/auth/RegisterScreen';
-import { ForgotPasswordScreen }  from '../screens/auth/ForgotPasswordScreen';
+import { ResetPasswordScreen }   from '../screens/auth/ResetPasswordScreen';
 import { ClientHomeScreen }      from '../screens/client/ClientHomeScreen';
 import { NewTicketScreen }       from '../screens/client/NewTicketScreen';
 import { NewInstallationScreen }  from '../screens/client/NewInstallationScreen';
 import { TechnicianHomeScreen }  from '../screens/technician/TechnicianHomeScreen';
 import { ClientsByTechScreen }   from '../screens/technician/ClientsByTechScreen';
 import { ClientTicketsScreen }   from '../screens/technician/ClientTicketsScreen';
-import { ClearClientsScreen }    from '../screens/technician/ClearClientsScreen';
 import { TicketDetailScreen }    from '../screens/shared/TicketDetailScreen';
 import { ProfileScreen }         from '../screens/shared/ProfileScreen';
 import { NotificationsScreen }   from '../screens/shared/NotificationsScreen';
@@ -27,55 +25,26 @@ import { TrackingScreen }        from '../screens/shared/TrackingScreen';
 import { ChatScreen }            from '../screens/shared/ChatScreen';
 import { TicketCard }            from '../components/cards/TicketCard';
 
+import { Colors, Typography } from '../constants/theme';
+
 const Stack = createNativeStackNavigator();
 const Tab   = createBottomTabNavigator();
 
 function MyTicketsScreen({ navigation }: any) {
-  const { getMyTickets, setSelectedTicket, clearAllTickets } = useStore();
+  const { getMyTickets, setSelectedTicket } = useStore();
   const sorted = [...getMyTickets()].sort((a, b) =>
     new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
-
-  const handleClearTickets = () => {
-    Alert.alert('Limpar chamados', 'Deseja remover TODOS os chamados? Esta ação não pode ser desfeita.', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Limpar', style: 'destructive', onPress: clearAllTickets },
-    ]);
-  };
-
   return (
     <ScrollView style={{ flex: 1, backgroundColor: Colors.background }} contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
       {sorted.length === 0 ? (
         <View style={{ alignItems: 'center', paddingVertical: 64 }}>
-          <Text style={{ color: Colors.textSecondary, fontSize: 16 }}>Nenhum chamado ainda.</Text>
+          <Text style={{ color: Colors.textSecondary, fontSize: Typography.base }}>Nenhum chamado ainda.</Text>
         </View>
-      ) : (
-        <>
-          {sorted.map((ticket: any) => (
-            <TicketCard key={ticket.id} ticket={ticket}
-              onPress={(t: any) => { setSelectedTicket(t); navigation.navigate('TicketDetail', { ticketId: t.id }); }} />
-          ))}
-          <TouchableOpacity 
-            style={{ 
-              flexDirection: 'row', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              gap: 8, 
-              marginTop: 24, 
-              padding: 12, 
-              backgroundColor: '#FEE2E2', 
-              borderRadius: Radii.lg, 
-              borderWidth: 1, 
-              borderColor: '#FCA5A5' 
-            }} 
-            onPress={handleClearTickets} 
-            activeOpacity={0.8}
-          >
-            <Ionicons name="trash-outline" size={20} color="#DC2626" />
-            <Text style={{ fontSize: 16, fontWeight: '600', color: '#DC2626' }}>Limpar chamados</Text>
-          </TouchableOpacity>
-        </>
-      )}
+      ) : sorted.map((ticket: any) => (
+        <TicketCard key={ticket.id} ticket={ticket}
+          onPress={(t: any) => { setSelectedTicket(t); navigation.navigate('TicketDetail', { ticketId: t.id }); }} />
+      ))}
     </ScrollView>
   );
 }
@@ -150,9 +119,9 @@ export function AppNavigator() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
           <>
-            <Stack.Screen name="Login"         component={LoginScreen} />
-            <Stack.Screen name="Register"      component={RegisterScreen}      options={{ ...hdr, headerTitle: 'Criar conta' }} />
-            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Login"    component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} options={{ ...hdr, headerTitle: 'Criar conta' }} />
+            <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ ...hdr, headerTitle: 'Recuperar senha' }} />
           </>
         ) : user?.role === UserRole.CLIENT ? (
           <>
@@ -170,7 +139,6 @@ export function AppNavigator() {
             <Stack.Screen name="TechnicianTabs" component={TechnicianTabs} />
             <Stack.Screen name="TicketDetail"   component={TicketDetailScreen}  options={{ ...hdr, headerTitle: 'Chamado' }} />
             <Stack.Screen name="ClientTickets"  component={ClientTicketsScreen} options={({ route }: any) => ({ ...hdr, headerTitle: route.params?.clientName ?? 'Chamados' })} />
-            <Stack.Screen name="ClearClients"   component={ClearClientsScreen}  options={{ ...hdr, headerTitle: 'Limpar Clientes' }} />
             <Stack.Screen name="Notifications"  component={NotificationsScreen} options={{ ...hdr, headerTitle: 'Notificações' }} />
             <Stack.Screen name="Tracking"       component={TrackingScreen}      options={{ headerShown: false }} />
             <Stack.Screen name="Chat"           component={ChatScreen}          options={{ headerShown: false }} />
