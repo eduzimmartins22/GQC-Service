@@ -82,9 +82,19 @@ export function TrackingScreen({ route, navigation }: any) {
           setEta(0);
           return ROUTE_STEPS - 1;
         }
-        setTechCoord(routeCoords[next]);
-        setEta(Math.round(12 * (1 - next / ROUTE_STEPS)));
-        mapRef.current?.animateCamera({ center: routeCoords[next] }, { duration: 800 });
+        const nextCoord = routeCoords[next];
+        if (nextCoord) {
+          setTechCoord(nextCoord);
+          setEta(Math.round(12 * (1 - next / ROUTE_STEPS)));
+          // Safely animate camera with error handling
+          try {
+            if (mapRef.current && mapRef.current.animateCamera) {
+              mapRef.current.animateCamera({ center: nextCoord }, { duration: 800 });
+            }
+          } catch (error) {
+            // Silently ignore map animation errors on emulator or web
+          }
+        }
         return next;
       });
     }, MOVE_INTERVAL_MS);

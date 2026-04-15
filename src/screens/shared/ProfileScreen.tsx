@@ -6,19 +6,12 @@ import { UserRole } from '../../types';
 import { Colors, Typography, Spacing, Radii, Shadows } from '../../constants/theme';
 
 export function ProfileScreen({ navigation }: any) {
-  const { user, logout, clearAllTickets } = useStore();
+  const { user, logout } = useStore();
 
   const handleLogout = () => {
     Alert.alert('Sair', 'Deseja encerrar a sessão?', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Sair', style: 'destructive', onPress: logout },
-    ]);
-  };
-
-  const handleClearTickets = () => {
-    Alert.alert('Limpar chamados', 'Deseja remover TODOS os chamados? Esta ação não pode ser desfeita.', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Limpar', style: 'destructive', onPress: clearAllTickets },
     ]);
   };
 
@@ -82,12 +75,6 @@ export function ProfileScreen({ navigation }: any) {
         <InfoRow icon="code-slash-outline" label="Ambiente" value="Piloto" />
       </View>
 
-      {/* Clear tickets button */}
-      <TouchableOpacity style={styles.clearBtn} onPress={handleClearTickets} activeOpacity={0.8}>
-        <Ionicons name="trash-outline" size={20} color={Colors.error} />
-        <Text style={styles.clearText}>Limpar chamados</Text>
-      </TouchableOpacity>
-
       {/* Logout */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
         <Ionicons name="log-out-outline" size={20} color={Colors.error} />
@@ -127,8 +114,6 @@ const styles = StyleSheet.create({
   infoLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   infoLabel: { fontSize: Typography.sm, color: Colors.textSecondary },
   infoValue: { fontSize: Typography.sm, fontWeight: '600', color: Colors.textPrimary, maxWidth: '55%' },
-  clearBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, marginTop: Spacing.lg, padding: Spacing.base, backgroundColor: Colors.errorBg, borderRadius: Radii.lg, borderWidth: 1, borderColor: Colors.errorLight },
-  clearText: { fontSize: Typography.base, fontWeight: '600', color: Colors.error },
   logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, marginTop: Spacing.lg, padding: Spacing.base, backgroundColor: Colors.errorBg, borderRadius: Radii.lg, borderWidth: 1, borderColor: Colors.errorLight },
   logoutText: { fontSize: Typography.base, fontWeight: '600', color: Colors.error },
 });
