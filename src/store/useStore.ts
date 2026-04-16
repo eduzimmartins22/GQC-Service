@@ -85,6 +85,7 @@ export const useStore = create<StoreState>((set, get) => ({
   notifications: [], allMessages: {}, users: [], hydrated: false,
   _unsubscribeTickets: null, _unsubscribeNotifications: null,
 
+  // ── hydrate: registra listeners em tempo real do Firestore
   hydrate: async (overrideUser?: User) => {
     const user = overrideUser ?? get().user;
     if (!user) return;
@@ -123,7 +124,7 @@ export const useStore = create<StoreState>((set, get) => ({
       }
     }
 
-    // Fallback técnicos seed
+    // Fallback técnicos seed (não cadastrados no Firebase Auth)
     const found = SEED_TECHNICIANS.find(
       u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
     );

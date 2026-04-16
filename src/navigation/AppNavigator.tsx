@@ -109,28 +109,35 @@ const hdr = {
 };
 
 export function AppNavigator() {
-  const { isAuthenticated, user, hydrate, login } = useStore();
+  const { isAuthenticated, user, hydrate } = useStore();
 
-  // Escuta mudanças de autenticação do Firebase e re-hidrata se necessário
+  // Escuta mudanças de autenticação do Firebase ao abrir o app.
+  // Resolve o caso onde o usuário já tinha sessão ativa (token salvo)
+  // mas o store ainda está vazio — registra os listeners do Firestore.
   useEffect(() => {
+    let unsubFirebase: (() => void) | undefined;
+
     import('../services/authService').then(({ authService }) => {
-      const unsub = authService.onAuthStateChanged(async (firebaseUser) => {
-        if (firebaseUser && !useStore.getState().isAuthenticated) {
-          // Sessão ativa mas store não hidratado — recarrega do Firestore
+      unsubFirebase = authService.onAuthStateChanged(async (firebaseUser) => {
+        const state = useStore.getState();
+
+        if (firebaseUser && !state.isAuthenticated) {
+          // Sessão ativa no Firebase mas store vazio — recarrega dados
           const { usersService } = await import('../services/firestoreService');
           const userData = await usersService.getUser(firebaseUser.uid);
           if (userData) {
-            const { password: _pw, ...user } = userData as any;
-            useStore.setState({ user, isAuthenticated: true });
-            await hydrate(user as any);
+            const { password: _pw, ...cleanUser } = userData as any;
+            useStore.setState({ user: cleanUser, isAuthenticated: true });
+            await useStore.getState().hydrate(cleanUser);
           }
-        } else if (!firebaseUser && useStore.getState().isAuthenticated) {
-          // Firebase deslogou (token expirado etc)
+        } else if (!firebaseUser && state.isAuthenticated) {
+          // Token expirou ou foi revogado pelo Firebase
           useStore.setState({ user: null, isAuthenticated: false });
         }
       });
-      return unsub;
     });
+
+    return () => { unsubFirebase?.(); };
   }, []);
 
   return (
@@ -138,20 +145,20 @@ export function AppNavigator() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!isAuthenticated ? (
           <>
-            <Stack.Screen name="Login"    component={LoginScreen} />
-            <Stack.Screen name="Register" component={RegisterScreen} options={{ ...hdr, headerTitle: 'Criar conta' }} />
+            <Stack.Screen name="Login"         component={LoginScreen} />
+            <Stack.Screen name="Register"      component={RegisterScreen}      options={{ ...hdr, headerTitle: 'Criar conta' }} />
             <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ ...hdr, headerTitle: 'Recuperar senha' }} />
           </>
         ) : user?.role === UserRole.CLIENT ? (
           <>
-            <Stack.Screen name="ClientTabs"   component={ClientTabs} />
-            <Stack.Screen name="TicketDetail" component={TicketDetailScreen}  options={{ ...hdr, headerTitle: 'Chamado' }} />
-            <Stack.Screen name="NewTicket"    component={NewTicketScreen}     options={{ ...hdr, headerTitle: 'Novo chamado' }} />
+            <Stack.Screen name="ClientTabs"      component={ClientTabs} />
+            <Stack.Screen name="TicketDetail"    component={TicketDetailScreen}    options={{ ...hdr, headerTitle: 'Chamado' }} />
+            <Stack.Screen name="NewTicket"       component={NewTicketScreen}       options={{ ...hdr, headerTitle: 'Novo chamado' }} />
             <Stack.Screen name="NewInstallation" component={NewInstallationScreen} options={{ ...hdr, headerTitle: 'Nova instalação' }} />
-            <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ ...hdr, headerTitle: 'Notificações' }} />
-            <Stack.Screen name="RateTicket"   component={RateTicketScreen}    options={{ ...hdr, headerTitle: 'Avaliar atendimento' }} />
-            <Stack.Screen name="Tracking"     component={TrackingScreen}      options={{ headerShown: false }} />
-            <Stack.Screen name="Chat"         component={ChatScreen}          options={{ headerShown: false }} />
+            <Stack.Screen name="Notifications"   component={NotificationsScreen}   options={{ ...hdr, headerTitle: 'Notificações' }} />
+            <Stack.Screen name="RateTicket"      component={RateTicketScreen}      options={{ ...hdr, headerTitle: 'Avaliar atendimento' }} />
+            <Stack.Screen name="Tracking"        component={TrackingScreen}        options={{ headerShown: false }} />
+            <Stack.Screen name="Chat"            component={ChatScreen}            options={{ headerShown: false }} />
           </>
         ) : (
           <>
