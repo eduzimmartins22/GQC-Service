@@ -21,7 +21,6 @@ const PRIORITY_OPTIONS = [
 export function NewTicketScreen({ navigation }: any) {
   const { openTicket } = useStore();
 
-  // Wizard state
   const [step, setStep]             = useState<Step>('equipment');
   const [equipment, setEquipment]   = useState<EquipmentCategory | null>(null);
   const [subtype, setSubtype]       = useState<EquipmentSubtype | null>(null);
@@ -33,14 +32,12 @@ export function NewTicketScreen({ navigation }: any) {
   const [submitted, setSubmitted]   = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // ── Symptom toggle
   const toggleSymptom = (label: string) => {
     setSymptoms(prev =>
       prev.includes(label) ? prev.filter(s => s !== label) : [...prev, label]
     );
   };
 
-  // ── Navigate between steps
   const goBack = () => {
     if (step === 'subtype')  { setSubtype(null);  setStep('equipment'); }
     if (step === 'symptom')  { setSymptoms([]);   setIsOther(false); setStep('subtype'); }
@@ -52,7 +49,6 @@ export function NewTicketScreen({ navigation }: any) {
   const handleSubmit = async () => {
     if (submitting) return;
     setSubmitting(true);
-    
 
     await openTicket({
       title: '',
@@ -70,7 +66,6 @@ export function NewTicketScreen({ navigation }: any) {
     setSubmitted(true);
   };
 
-  // ── Success screen
   if (submitted) {
     return (
       <View style={styles.successWrap}>
@@ -251,28 +246,6 @@ export function NewTicketScreen({ navigation }: any) {
               <SummaryRow icon="warning-outline" label="Problema(s)"
                 value={isOther ? otherText : symptoms.join(' • ')} />
             </View>
-
-            {/* Distance field */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Distância aproximada (ida e volta) <Text style={styles.optional}>(opcional)</Text></Text>
-              <View style={styles.distanceInputRow}>
-                <TextInput
-                  style={styles.distanceInput}
-                  value={distanceKm}
-                  onChangeText={setDistanceKm}
-                  placeholder="Ex: 75"
-                  placeholderTextColor={Colors.textTertiary}
-                  keyboardType="number-pad"
-                  maxLength={3}
-                />
-                <Text style={styles.distanceUnit}>KM</Text>
-              </View>
-            </View>
-
-            {/* Distance Warning */}
-            {distanceKm && parseInt(distanceKm) > 0 && (
-              <DistanceWarning distanceKm={parseInt(distanceKm)} showFullDetails={true} />
-            )}
 
             {/* Extra details */}
             <View style={styles.fieldGroup}>
