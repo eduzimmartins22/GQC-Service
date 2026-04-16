@@ -8,28 +8,27 @@ import { useStore } from '../../store/useStore';
 import { UserRole } from '../../types';
 import { Colors, Typography, Spacing, Radii, Shadows } from '../../constants/theme';
 import { timeAgo } from '../../utils/helpers';
-
-const POLL_INTERVAL = 4000; // 4s polling simulates real-time
+import { messagesService } from '../../services/firestoreService';
 
 export function ChatScreen({ route, navigation }: any) {
   const { ticketId } = route.params;
-  const { user, tickets, getMessages, sendMessage, refreshMessages } = useStore();
+  const { user, tickets, sendMessage } = useStore();
   const ticket = tickets.find((t: any) => t.id === ticketId);
 
-  const [text, setText]     = useState('');
+  const [text, setText]       = useState('');
   const [sending, setSending] = useState(false);
+  const [messages, setMessages] = useState<any[]>([]);
   const listRef = useRef<FlatList>(null);
 
-  const messages = getMessages(ticketId);
-
-  // ── Poll for new messages every 4 seconds
+  // ── Listener em tempo real via Firestore onSnapshot
   useEffect(() => {
-    refreshMessages(ticketId);
-    const interval = setInterval(() => refreshMessages(ticketId), POLL_INTERVAL);
-    return () => clearInterval(interval);
+    const unsubscribe = messagesService.subscribeToTicketMessages(ticketId, (msgs) => {
+      setMessages(msgs);
+    });
+    return () => unsubscribe(); // cancela ao sair da tela
   }, [ticketId]);
 
-  // ── Scroll to bottom when messages change
+  // ── Scroll to bottom quando chegam mensagens novas
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);

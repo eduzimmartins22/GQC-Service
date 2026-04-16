@@ -44,7 +44,7 @@ interface StoreState {
   _unsubscribeTickets: (() => void) | null;
   _unsubscribeNotifications: (() => void) | null;
 
-  hydrate: () => Promise<void>;
+  hydrate: (overrideUser?: User) => Promise<void>;
   login: (email: string, password: string) => Promise<boolean>;
   register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
@@ -85,8 +85,8 @@ export const useStore = create<StoreState>((set, get) => ({
   notifications: [], allMessages: {}, users: [], hydrated: false,
   _unsubscribeTickets: null, _unsubscribeNotifications: null,
 
-  hydrate: async () => {
-    const { user } = get();
+  hydrate: async (overrideUser?: User) => {
+    const user = overrideUser ?? get().user;
     if (!user) return;
 
     get()._unsubscribeTickets?.();

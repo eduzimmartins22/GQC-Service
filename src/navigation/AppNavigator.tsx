@@ -109,10 +109,29 @@ const hdr = {
 };
 
 export function AppNavigator() {
-  const { isAuthenticated, user, hydrate } = useStore();
+  const { isAuthenticated, user, hydrate, login } = useStore();
 
-  // Load persisted data from AsyncStorage on app start
-  useEffect(() => { hydrate(); }, []);
+  // Escuta mudanças de autenticação do Firebase e re-hidrata se necessário
+  useEffect(() => {
+    import('../services/authService').then(({ authService }) => {
+      const unsub = authService.onAuthStateChanged(async (firebaseUser) => {
+        if (firebaseUser && !useStore.getState().isAuthenticated) {
+          // Sessão ativa mas store não hidratado — recarrega do Firestore
+          const { usersService } = await import('../services/firestoreService');
+          const userData = await usersService.getUser(firebaseUser.uid);
+          if (userData) {
+            const { password: _pw, ...user } = userData as any;
+            useStore.setState({ user, isAuthenticated: true });
+            await hydrate(user as any);
+          }
+        } else if (!firebaseUser && useStore.getState().isAuthenticated) {
+          // Firebase deslogou (token expirado etc)
+          useStore.setState({ user: null, isAuthenticated: false });
+        }
+      });
+      return unsub;
+    });
+  }, []);
 
   return (
     <NavigationContainer>

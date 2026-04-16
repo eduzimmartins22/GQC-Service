@@ -6,11 +6,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../store/useStore';
 import { Button } from '../../components/common/Button';
-import { DistanceWarning } from '../../components/common/DistanceWarning';
 import { TicketPriority } from '../../types';
 import { EQUIPMENT_CATALOG, EquipmentCategory, EquipmentSubtype } from '../../data/equipmentCatalog';
 import { Colors, Typography, Spacing, Radii, Shadows } from '../../constants/theme';
-import { calculateDistanceCost } from '../../utils/distanceCalculator';
 
 type Step = 'equipment' | 'subtype' | 'symptom' | 'details';
 
@@ -34,7 +32,6 @@ export function NewTicketScreen({ navigation }: any) {
   const [priority, setPriority]     = useState<TicketPriority>(TicketPriority.MEDIUM);
   const [submitted, setSubmitted]   = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [distanceKm, setDistanceKm] = useState<string>('');
 
   // ── Symptom toggle
   const toggleSymptom = (label: string) => {
@@ -56,8 +53,6 @@ export function NewTicketScreen({ navigation }: any) {
     if (submitting) return;
     setSubmitting(true);
     
-    const distance = distanceKm ? parseInt(distanceKm) : undefined;
-    const distanceCost = distance ? calculateDistanceCost(distance) : null;
 
     await openTicket({
       title: '',
@@ -70,9 +65,6 @@ export function NewTicketScreen({ navigation }: any) {
       symptoms:       isOther ? ['Outros: ' + otherText.trim()] : symptoms,
       isOtherProblem: isOther,
       extraDetails:   extraDetails.trim() || undefined,
-      distanceKm:     distance,
-      travelCost:     distanceCost?.travelCost,
-      hasDistanceWarning: distanceCost?.exceedsLimit,
     });
     setSubmitting(false);
     setSubmitted(true);
@@ -260,27 +252,6 @@ export function NewTicketScreen({ navigation }: any) {
                 value={isOther ? otherText : symptoms.join(' • ')} />
             </View>
 
-            {/* Distance field */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Distância aproximada (ida e volta) <Text style={styles.optional}>(opcional)</Text></Text>
-              <View style={styles.distanceInputRow}>
-                <TextInput
-                  style={styles.distanceInput}
-                  value={distanceKm}
-                  onChangeText={setDistanceKm}
-                  placeholder="Ex: 75"
-                  placeholderTextColor={Colors.textTertiary}
-                  keyboardType="number-pad"
-                  maxLength={3}
-                />
-                <Text style={styles.distanceUnit}>KM</Text>
-              </View>
-            </View>
-
-            {/* Distance Warning */}
-            {distanceKm && parseInt(distanceKm) > 0 && (
-              <DistanceWarning distanceKm={parseInt(distanceKm)} showFullDetails={true} />
-            )}
 
             {/* Extra details */}
             <View style={styles.fieldGroup}>
@@ -418,9 +389,6 @@ const styles = StyleSheet.create({
   fieldGroup: { marginBottom: Spacing.lg },
   label: { fontSize: Typography.sm, fontWeight: '600', color: Colors.textPrimary, marginBottom: 6 },
   optional: { color: Colors.textTertiary, fontWeight: '400' },
-  distanceInputRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  distanceInput: { flex: 1, backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.border, borderRadius: Radii.md, padding: Spacing.md, fontSize: Typography.base, color: Colors.textPrimary },
-  distanceUnit: { fontSize: Typography.sm, fontWeight: '600', color: Colors.textSecondary, marginLeft: Spacing.xs },
   textArea: { backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.border, borderRadius: Radii.md, padding: Spacing.md, fontSize: Typography.base, color: Colors.textPrimary, minHeight: 100 },
   charCount: { fontSize: Typography.xs, color: Colors.textTertiary, textAlign: 'right', marginTop: 4 },
   priorityRow: { flexDirection: 'row', gap: Spacing.sm },
