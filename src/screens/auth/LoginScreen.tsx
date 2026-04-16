@@ -209,6 +209,11 @@ export function LoginScreen({ navigation }: any) {
             </TouchableOpacity>
           )}
 
+          {/* Link esqueceu senha */}
+          <TouchableOpacity onPress={() => navigation.navigate('ResetPassword')} style={styles.forgotBtn}>
+            <Text style={styles.forgotLink}>Esqueceu a senha?</Text>
+          </TouchableOpacity>
+
           {/* Link cadastro */}
           <Text style={styles.registerHint}>
             Não tem conta?{' '}
@@ -216,11 +221,6 @@ export function LoginScreen({ navigation }: any) {
               Criar conta
             </Text>
           </Text>
-
-          {/* Link esqueci senha */}
-          <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
       <LGPDFooter />
@@ -279,9 +279,9 @@ const styles = StyleSheet.create({
   biometricBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, marginTop: Spacing.md, padding: Spacing.md, backgroundColor: Colors.primaryLight, borderRadius: Radii.lg },
   biometricBtnText: { fontSize: Typography.base, fontWeight: '700', color: Colors.primary },
 
+  forgotBtn: { marginTop: Spacing.md, alignItems: 'center' },
+  forgotLink: { fontSize: Typography.sm, color: Colors.primary, fontWeight: '600' },
+
   registerHint: { textAlign: 'center', marginTop: Spacing.lg, fontSize: Typography.sm, color: Colors.textSecondary },
   registerLink: { color: Colors.primary, fontWeight: '700' },
-
-  forgotPassword: { marginTop: Spacing.md },
-  forgotPasswordText: { textAlign: 'center', fontSize: Typography.sm, color: Colors.primary, fontWeight: '600' },
 });

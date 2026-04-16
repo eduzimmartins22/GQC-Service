@@ -54,6 +54,55 @@ export function validateCEP(cep: string): { valid: boolean; message: string } {
   return { valid: true, message: '' };
 }
 
+export function validateCNPJ(cnpj: string): { valid: boolean; message: string } {
+  const cleaned = cnpj.replace(/\D/g, '');
+
+  if (!cleaned) {
+    return { valid: false, message: 'O campo CNPJ está vazio' };
+  }
+
+  if (cleaned.length !== 14) {
+    return { valid: false, message: 'Olha, você errou no CNPJ, revise' };
+  }
+
+  if (/^(\d)\1{13}$/.test(cleaned)) {
+    return { valid: false, message: 'Olha, você errou no CNPJ, revise' };
+  }
+
+  let size = cleaned.length - 2;
+  let numbers = cleaned.substring(0, size);
+  let digits = cleaned.substring(size);
+  let sum = 0;
+  let pos = size - 7;
+
+  for (let i = size; i >= 1; i--) {
+    sum += numbers.charAt(size - i) * pos--;
+    if (pos < 2) pos = 9;
+  }
+
+  let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (result !== parseInt(digits.charAt(0))) {
+    return { valid: false, message: 'Olha, você errou no CNPJ, revise' };
+  }
+
+  size = size + 1;
+  numbers = cleaned.substring(0, size);
+  sum = 0;
+  pos = size - 7;
+
+  for (let i = size; i >= 1; i--) {
+    sum += numbers.charAt(size - i) * pos--;
+    if (pos < 2) pos = 9;
+  }
+
+  result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+  if (result !== parseInt(digits.charAt(1))) {
+    return { valid: false, message: 'Olha, você errou no CNPJ, revise' };
+  }
+
+  return { valid: true, message: '' };
+}
+
 export function validateEmail(email: string): { valid: boolean; message: string } {
   if (!email || email.trim().length === 0) {
     return { valid: false, message: 'O campo E-mail está vazio' };
@@ -76,55 +125,6 @@ export function validatePhone(phone: string): { valid: boolean; message: string 
 
   if (cleaned.length < 10) {
     return { valid: false, message: 'Está faltando algo no Telefone' };
-  }
-
-  return { valid: true, message: '' };
-}
-
-export function validateCNPJ(cnpj: string): { valid: boolean; message: string } {
-  const cleaned = cnpj.replace(/\D/g, '');
-
-  if (!cleaned) {
-    return { valid: false, message: 'O campo CNPJ está vazio' };
-  }
-
-  if (cleaned.length !== 14) {
-    return { valid: false, message: 'Olha, você errou no CNPJ, revise' };
-  }
-
-  if (/^(\d)\1{13}$/.test(cleaned)) {
-    return { valid: false, message: 'Olha, você errou no CNPJ, revise' };
-  }
-
-  // Validar dígito verificador
-  let sum = 0;
-  let multiplier = 5;
-
-  for (let i = 0; i < 12; i++) {
-    sum += parseInt(cleaned[i]) * multiplier;
-    multiplier = multiplier === 2 ? 9 : multiplier - 1;
-  }
-
-  let remainder = sum % 11;
-  let firstDigit = remainder < 2 ? 0 : 11 - remainder;
-
-  if (parseInt(cleaned[12]) !== firstDigit) {
-    return { valid: false, message: 'Olha, você errou no CNPJ, revise' };
-  }
-
-  sum = 0;
-  multiplier = 6;
-
-  for (let i = 0; i < 13; i++) {
-    sum += parseInt(cleaned[i]) * multiplier;
-    multiplier = multiplier === 2 ? 9 : multiplier - 1;
-  }
-
-  remainder = sum % 11;
-  let secondDigit = remainder < 2 ? 0 : 11 - remainder;
-
-  if (parseInt(cleaned[13]) !== secondDigit) {
-    return { valid: false, message: 'Olha, você errou no CNPJ, revise' };
   }
 
   return { valid: true, message: '' };

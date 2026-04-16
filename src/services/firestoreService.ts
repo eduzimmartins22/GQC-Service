@@ -1,145 +1,226 @@
 import {
-  collection,
-  addDoc,
-  getDocs,
-  getDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  query,
-  where,
-  onSnapshot,
-  Timestamp
+  collection, addDoc, getDocs, getDoc, setDoc,
+  updateDoc, deleteDoc, doc, query, where,
+  onSnapshot, Timestamp, orderBy,
 } from 'firebase/firestore';
 import { FIREBASE_DB } from '../config/firebase';
+import { User, Ticket, Notification, ChatMessage } from '../types';
 
-// ── USERS (Usuários)
+// ─── USERS ────────────────────────────────────────────────────────────────────
 export const usersService = {
-  // Criar usuário (APÓS registrar no Firebase Auth)
-  createUser: async (userId: string, userData: any) => {
+  // Cria/atualiza documento do usuário usando o uid como ID do doc
+  upsertUser: async (userId: string, userData: Partial<User & { password?: string }>) => {
     try {
-      await updateDoc(doc(FIREBASE_DB, 'users', userId), {
+      await setDoc(doc(FIREBASE_DB, 'users', userId), {
         ...userData,
-        createdAt: Timestamp.now()
-      });
+        updatedAt: Timestamp.now(),
+      }, { merge: true });
       return { success: true };
-    } catch {
-      // Se não existe, cria
-      await addDoc(collection(FIREBASE_DB, 'users'), {
-        id: userId,
-        ...userData,
-        createdAt: Timestamp.now()
-      });
-      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
     }
   },
 
-  // Obter usuário
-  getUser: async (userId: string) => {
+  getUser: async (userId: string): Promise<(User & { password?: string }) | null> => {
     try {
       const snap = await getDoc(doc(FIREBASE_DB, 'users', userId));
-      return snap.exists() ? snap.data() : null;
-    } catch (error) {
-      console.error('Erro ao buscar usuário:', error);
+      return snap.exists() ? (snap.data() as User & { password?: string }) : null;
+    } catch {
       return null;
     }
   },
 
-  // Obter todos os usuários
-  getAllUsers: async () => {
+  getAllUsers: async (): Promise<(User & { password?: string })[]> => {
     try {
       const snapshot = await getDocs(collection(FIREBASE_DB, 'users'));
-      return snapshot.docs.map(doc => doc.data());
-    } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
+      return snapshot.docs.map(d => d.data() as User & { password?: string });
+    } catch {
       return [];
     }
-  }
+  },
+
+  deleteUser: async (userId: string) => {
+    try {
+      await deleteDoc(doc(FIREBASE_DB, 'users', userId));
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  },
 };
 
-// ── TICKETS (Chamados)
+// ─── TICKETS ──────────────────────────────────────────────────────────────────
 export const ticketsService = {
-  // Criar chamado
-  createTicket: async (ticketData: any) => {
+  createTicket: async (ticketData: Omit<Ticket, 'id'> & { id?: string }) => {
     try {
-      const docRef = await addDoc(collection(FIREBASE_DB, 'tickets'), {
+      // Usa o id gerado localmente como ID do documento Firestore
+      const id = ticketData.id ?? `t${Date.now()}`;
+      await setDoc(doc(FIREBASE_DB, 'tickets', id), {
         ...ticketData,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now()
+        id,
+        createdAt: ticketData.createdAt ?? new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
-      return { success: true, id: docRef.id };
-    } catch (error) {
-      console.error('Erro ao criar chamado:', error);
-      return { success: false, error };
+      return { success: true, id };
+    } catch (error: any) {
+      return { success: false, error: error.message };
     }
   },
 
-  // Obter chamados do cliente
-  getClientTickets: async (clientId: string) => {
-    try {
-      const q = query(collection(FIREBASE_DB, 'tickets'), where('clientId', '==', clientId));
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-      console.error('Erro ao buscar chamados:', error);
-      return [];
-    }
-  },
-
-  // Obter chamados do técnico
-  getTechnicianTickets: async (techId: string) => {
-    try {
-      const q = query(collection(FIREBASE_DB, 'tickets'), where('technicianId', '==', techId));
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-      console.error('Erro ao buscar chamados:', error);
-      return [];
-    }
-  },
-
-  // Obter todos os chamados
-  getAllTickets: async () => {
-    try {
-      const snapshot = await getDocs(collection(FIREBASE_DB, 'tickets'));
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-      console.error('Erro ao buscar chamados:', error);
-      return [];
-    }
-  },
-
-  // Atualizar chamado
-  updateTicket: async (ticketId: string, updates: any) => {
+  updateTicket: async (ticketId: string, updates: Partial<Ticket>) => {
     try {
       await updateDoc(doc(FIREBASE_DB, 'tickets', ticketId), {
         ...updates,
-        updatedAt: Timestamp.now()
+        updatedAt: new Date().toISOString(),
       });
       return { success: true };
-    } catch (error) {
-      console.error('Erro ao atualizar chamado:', error);
-      return { success: false, error };
+    } catch (error: any) {
+      return { success: false, error: error.message };
     }
   },
 
-  // Deletar chamado
   deleteTicket: async (ticketId: string) => {
     try {
       await deleteDoc(doc(FIREBASE_DB, 'tickets', ticketId));
       return { success: true };
-    } catch (error) {
-      console.error('Erro ao deletar chamado:', error);
-      return { success: false, error };
+    } catch (error: any) {
+      return { success: false, error: error.message };
     }
   },
 
-  // Listener em tempo real (novo!)
-  subscribeToClientTickets: (clientId: string, callback: any) => {
-    const q = query(collection(FIREBASE_DB, 'tickets'), where('clientId', '==', clientId));
-    return onSnapshot(q, snapshot => {
-      const tickets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      callback(tickets);
+  getAllTickets: async (): Promise<Ticket[]> => {
+    try {
+      const snap = await getDocs(collection(FIREBASE_DB, 'tickets'));
+      return snap.docs.map(d => d.data() as Ticket);
+    } catch {
+      return [];
+    }
+  },
+
+  getClientTickets: async (clientId: string): Promise<Ticket[]> => {
+    try {
+      const q = query(collection(FIREBASE_DB, 'tickets'), where('clientId', '==', clientId));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => d.data() as Ticket);
+    } catch {
+      return [];
+    }
+  },
+
+  getTechnicianTickets: async (techId: string): Promise<Ticket[]> => {
+    try {
+      const q = query(collection(FIREBASE_DB, 'tickets'), where('technicianId', '==', techId));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => d.data() as Ticket);
+    } catch {
+      return [];
+    }
+  },
+
+  deleteClientTickets: async (clientId: string) => {
+    try {
+      const q = query(collection(FIREBASE_DB, 'tickets'), where('clientId', '==', clientId));
+      const snap = await getDocs(q);
+      const deletes = snap.docs.map(d => deleteDoc(d.ref));
+      await Promise.all(deletes);
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  },
+
+  // Listener em tempo real para todos os chamados
+  subscribeToAllTickets: (callback: (tickets: Ticket[]) => void) => {
+    return onSnapshot(collection(FIREBASE_DB, 'tickets'), snap => {
+      callback(snap.docs.map(d => d.data() as Ticket));
     });
-  }
+  },
+
+  // Listener em tempo real para chamados do cliente
+  subscribeToClientTickets: (clientId: string, callback: (tickets: Ticket[]) => void) => {
+    const q = query(collection(FIREBASE_DB, 'tickets'), where('clientId', '==', clientId));
+    return onSnapshot(q, snap => {
+      callback(snap.docs.map(d => d.data() as Ticket));
+    });
+  },
+};
+
+// ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
+export const notificationsService = {
+  addNotification: async (notif: Notification) => {
+    try {
+      await setDoc(doc(FIREBASE_DB, 'notifications', notif.id), notif);
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  },
+
+  getUserNotifications: async (userId: string): Promise<Notification[]> => {
+    try {
+      const q = query(collection(FIREBASE_DB, 'notifications'), where('userId', '==', userId));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => d.data() as Notification);
+    } catch {
+      return [];
+    }
+  },
+
+  markRead: async (notifId: string) => {
+    try {
+      await updateDoc(doc(FIREBASE_DB, 'notifications', notifId), { read: true });
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  },
+
+  markAllRead: async (userId: string) => {
+    try {
+      const q = query(collection(FIREBASE_DB, 'notifications'), where('userId', '==', userId), where('read', '==', false));
+      const snap = await getDocs(q);
+      await Promise.all(snap.docs.map(d => updateDoc(d.ref, { read: true })));
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  },
+
+  subscribeToUserNotifications: (userId: string, callback: (notifs: Notification[]) => void) => {
+    const q = query(collection(FIREBASE_DB, 'notifications'), where('userId', '==', userId));
+    return onSnapshot(q, snap => {
+      callback(snap.docs.map(d => d.data() as Notification));
+    });
+  },
+};
+
+// ─── MESSAGES (CHAT) ──────────────────────────────────────────────────────────
+export const messagesService = {
+  sendMessage: async (msg: ChatMessage) => {
+    try {
+      await setDoc(doc(FIREBASE_DB, 'messages', msg.id), msg);
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  },
+
+  getTicketMessages: async (ticketId: string): Promise<ChatMessage[]> => {
+    try {
+      const q = query(collection(FIREBASE_DB, 'messages'), where('ticketId', '==', ticketId));
+      const snap = await getDocs(q);
+      const msgs = snap.docs.map(d => d.data() as ChatMessage);
+      return msgs.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    } catch {
+      return [];
+    }
+  },
+
+  subscribeToTicketMessages: (ticketId: string, callback: (msgs: ChatMessage[]) => void) => {
+    const q = query(collection(FIREBASE_DB, 'messages'), where('ticketId', '==', ticketId));
+    return onSnapshot(q, snap => {
+      const msgs = snap.docs.map(d => d.data() as ChatMessage);
+      callback(msgs.sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
+    });
+  },
 };

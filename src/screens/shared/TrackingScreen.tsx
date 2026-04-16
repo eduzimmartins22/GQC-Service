@@ -7,6 +7,7 @@ import * as Location from 'expo-location';
 import { useStore } from '../../store/useStore';
 import { UserRole } from '../../types';
 import { Colors, Typography, Spacing, Radii, Shadows } from '../../constants/theme';
+import { calculateHaversineDistance, calculateDistanceCost } from '../../utils/distanceCalculator';
 
 // ── Safe import — react-native-maps crashes on web bundler
 const isNative = Platform.OS === 'ios' || Platform.OS === 'android';
@@ -52,6 +53,8 @@ export function TrackingScreen({ route, navigation }: any) {
   const [eta, setEta] = useState(12);
   const [arrived, setArrived] = useState(false);
   const [usingRealLocation, setUsingRealLocation] = useState(false);
+  const [distance, setDistance] = useState(0);
+  const [distanceCost, setDistanceCost] = useState<any>(null);
 
   const mapRef = useRef<any>(null);
   const moveTimer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -82,24 +85,27 @@ export function TrackingScreen({ route, navigation }: any) {
           setEta(0);
           return ROUTE_STEPS - 1;
         }
-        const nextCoord = routeCoords[next];
-        if (nextCoord) {
-          setTechCoord(nextCoord);
-          setEta(Math.round(12 * (1 - next / ROUTE_STEPS)));
-          // Safely animate camera with error handling
-          try {
-            if (mapRef.current && mapRef.current.animateCamera) {
-              mapRef.current.animateCamera({ center: nextCoord }, { duration: 800 });
-            }
-          } catch (error) {
-            // Silently ignore map animation errors on emulator or web
-          }
-        }
+        setTechCoord(routeCoords[next]);
+        setEta(Math.round(12 * (1 - next / ROUTE_STEPS)));
+        mapRef.current?.animateCamera({ center: routeCoords[next] }, { duration: 800 });
         return next;
       });
     }, MOVE_INTERVAL_MS);
     return () => { if (moveTimer.current) clearInterval(moveTimer.current); };
   }, [arrived, routeCoords]);
+
+  // Calculate distance between tech and client (only for technician)
+  useEffect(() => {
+    if (!isTechnician) return;
+    const dist = calculateHaversineDistance(
+      techCoord.latitude,
+      techCoord.longitude,
+      clientCoord.latitude,
+      clientCoord.longitude
+    );
+    setDistance(dist);
+    setDistanceCost(calculateDistanceCost(dist));
+  }, [techCoord, clientCoord, isTechnician]);
 
   if (!ticket) {
     return (
@@ -110,14 +116,13 @@ export function TrackingScreen({ route, navigation }: any) {
   }
 
   // Web fallback
-  if (!isNative || !MapView) {
+  if (!isNative || !MapView || !ticket) {
     return (
       <View style={styles.fallback}>
         <Ionicons name="map-outline" size={64} color={Colors.textTertiary} />
         <Text style={styles.fallbackTitle}>Mapa disponível no app</Text>
         <Text style={styles.fallbackText}>
-          O rastreamento funciona no dispositivo Android ou iOS.{'\n'}
-          Não está disponível na versão web.
+          {!ticket ? 'Chamado não encontrado.' : 'O rastreamento funciona no dispositivo Android ou iOS.\nNão está disponível na versão web.'}
         </Text>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.backBtnText}>Voltar</Text>
@@ -144,17 +149,21 @@ export function TrackingScreen({ route, navigation }: any) {
         showsCompass={false}
       >
         {/* Rota percorrida (cinza) */}
-        <Polyline
-          coordinates={routeCoords.slice(0, stepIndex + 1)}
-          strokeColor={Colors.border}
-          strokeWidth={4}
-        />
+        {routeCoords.length > 0 && (
+          <Polyline
+            coordinates={routeCoords.slice(0, Math.min(stepIndex + 1, routeCoords.length))}
+            strokeColor={Colors.border}
+            strokeWidth={4}
+          />
+        )}
         {/* Rota restante (azul) */}
-        <Polyline
-          coordinates={routeCoords.slice(stepIndex)}
-          strokeColor={Colors.primary}
-          strokeWidth={5}
-        />
+        {routeCoords.length > 0 && stepIndex < routeCoords.length && (
+          <Polyline
+            coordinates={routeCoords.slice(stepIndex)}
+            strokeColor={Colors.primary}
+            strokeWidth={5}
+          />
+        )}
         {/* Marcador do técnico — carro */}
         <Marker coordinate={techCoord} anchor={{ x: 0.5, y: 0.5 }} title="Técnico">
           <View style={styles.techMarker}>
@@ -241,6 +250,38 @@ export function TrackingScreen({ route, navigation }: any) {
           </View>
         </View>
 
+        {/* Distância para técnico */}
+        {isTechnician && distanceCost && (
+          <View style={styles.distanceCard}>
+            <View style={styles.distanceHeader}>
+              <Ionicons name="navigate-outline" size={20} color={Colors.primary} />
+              <Text style={styles.distanceTitle}>Distância da rota</Text>
+            </View>
+            
+            <View style={styles.distanceContent}>
+              <View style={styles.distanceMainInfo}>
+                <Text style={styles.distanceValue}>{distance} km</Text>
+                <Text style={styles.distanceLabel}>Até o cliente</Text>
+              </View>
+
+              {distanceCost.exceedsLimit && (
+                <View style={styles.warningBox}>
+                  <Ionicons name="warning" size={20} color={Colors.error} />
+                  <View style={styles.warningContent}>
+                    <Text style={styles.warningTitle}>Excedeu 60 km</Text>
+                    <Text style={styles.warningText}>
+                      +{distanceCost.excessKm} km adicionais
+                    </Text>
+                    <Text style={styles.costText}>
+                      Custo extra: R$ {distanceCost.travelCost.toFixed(2)}
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
         <TouchableOpacity
           style={styles.recenterBtn}
           onPress={() => mapRef.current?.animateToRegion(region, 600)}
@@ -316,6 +357,26 @@ const styles = StyleSheet.create({
   infoSep: { width: 1, height: 40, backgroundColor: Colors.borderLight },
   infoLabel: { fontSize: Typography.xs, color: Colors.textTertiary, marginTop: 2 },
   infoValue: { fontSize: Typography.sm, fontWeight: '700', color: Colors.textPrimary, textAlign: 'center' },
+
+  distanceCard: {
+    marginTop: Spacing.base, paddingTop: Spacing.base,
+    borderTopWidth: 1, borderTopColor: Colors.borderLight,
+  },
+  distanceHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.md },
+  distanceTitle: { fontSize: Typography.sm, fontWeight: '700', color: Colors.textPrimary },
+  distanceContent: { gap: Spacing.sm },
+  distanceMainInfo: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  distanceValue: { fontSize: Typography.lg, fontWeight: '800', color: Colors.primary },
+  distanceLabel: { fontSize: Typography.xs, color: Colors.textSecondary },
+  warningBox: {
+    flexDirection: 'row', gap: Spacing.sm, padding: Spacing.md,
+    backgroundColor: Colors.errorBg, borderRadius: Radii.md,
+    borderLeftWidth: 3, borderLeftColor: Colors.error,
+  },
+  warningContent: { flex: 1 },
+  warningTitle: { fontSize: Typography.sm, fontWeight: '700', color: Colors.error },
+  warningText: { fontSize: Typography.xs, color: Colors.error, marginTop: 2 },
+  costText: { fontSize: Typography.xs, color: Colors.error, fontWeight: '700', marginTop: 4 },
 
   recenterBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',

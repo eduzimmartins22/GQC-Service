@@ -3,12 +3,11 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  User
+  User as FirebaseUser,
 } from 'firebase/auth';
 import { FIREBASE_AUTH } from '../config/firebase';
 
 export const authService = {
-  // Registrar novo usuário
   register: async (email: string, password: string) => {
     try {
       const result = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
@@ -18,7 +17,6 @@ export const authService = {
     }
   },
 
-  // Login
   login: async (email: string, password: string) => {
     try {
       const result = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
@@ -28,7 +26,6 @@ export const authService = {
     }
   },
 
-  // Logout
   logout: async () => {
     try {
       await signOut(FIREBASE_AUTH);
@@ -38,8 +35,7 @@ export const authService = {
     }
   },
 
-  // Monitora usuário autenticado
-  onAuthStateChanged: (callback: (user: User | null) => void) => {
+  onAuthStateChanged: (callback: (user: FirebaseUser | null) => void) => {
     return onAuthStateChanged(FIREBASE_AUTH, callback);
-  }
+  },
 };
