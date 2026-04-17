@@ -9,7 +9,7 @@ import {
   notificationsService, messagesService,
 } from '../services/firestoreService';
 
-// ─── MOCK USERS (técnicos fixos — mantidos para login inicial) ────────────────
+// ─── TÉCNICOS SEED (fallback — não usam Firebase Auth) ────────────────────────
 const SEED_TECHNICIANS: (User & { password: string })[] = [
   {
     id: 'u_isac', name: 'Isac', cpf: '000.000.000-00',
@@ -85,60 +85,105 @@ export const useStore = create<StoreState>((set, get) => ({
   notifications: [], allMessages: {}, users: [], hydrated: false,
   _unsubscribeTickets: null, _unsubscribeNotifications: null,
 
-  // ── hydrate: registra listeners em tempo real do Firestore
+  // ── Registra listeners Firestore em tempo real
   hydrate: async (overrideUser?: User) => {
     const user = overrideUser ?? get().user;
-    if (!user) return;
+    if (!user) {
+      console.log('[Store] hydrate cancelado: user null');
+      return;
+    }
 
+    console.log('[Store] hydrate iniciado para:', user.email, '| role:', user.role);
+
+    // Cancela listeners anteriores
     get()._unsubscribeTickets?.();
     get()._unsubscribeNotifications?.();
 
+    // Carrega lista de usuários (para o técnico ver clientes)
     const allUsers = await usersService.getAllUsers();
     set({ users: allUsers, hydrated: true });
+    console.log('[Store] usuarios carregados:', allUsers.length);
 
+    // Registra listener de tickets
     let unsubTickets: () => void;
     if (user.role === UserRole.TECHNICIAN) {
-      unsubTickets = ticketsService.subscribeToAllTickets(tickets => set({ tickets }));
+      unsubTickets = ticketsService.subscribeToAllTickets(tickets => {
+        console.log('[Store] tickets atualizados (técnico):', tickets.length);
+        set({ tickets });
+      });
     } else {
-      unsubTickets = ticketsService.subscribeToClientTickets(user.id, tickets => set({ tickets }));
+      unsubTickets = ticketsService.subscribeToClientTickets(user.id, tickets => {
+        console.log('[Store] tickets atualizados (cliente):', tickets.length);
+        set({ tickets });
+      });
     }
 
+    // Registra listener de notificações
     const unsubNotifs = notificationsService.subscribeToUserNotifications(user.id, notifications => {
       set({ notifications });
     });
 
     set({ _unsubscribeTickets: unsubTickets, _unsubscribeNotifications: unsubNotifs });
+    console.log('[Store] listeners registrados com sucesso');
   },
 
+  // ── Login
   login: async (email, password) => {
     set({ isLoading: true, authError: null });
+    console.log('[Store] tentando login:', email);
 
+    // 1. Tenta Firebase Auth (clientes cadastrados via register)
     const authResult = await authService.login(email, password);
+    console.log('[Store] Firebase Auth resultado:', authResult.success);
+
     if (authResult.success) {
+      // Busca dados do usuário no Firestore
       const userData = await usersService.getUser(authResult.user.uid);
+      console.log('[Store] userData do Firestore:', userData ? 'encontrado' : 'NÃO encontrado');
+
       if (userData) {
-        const { password: _pw, ...user } = userData;
-        set({ user: user as User, isAuthenticated: true, isLoading: false });
-        await get().hydrate();
+        const { password: _pw, ...cleanUser } = userData;
+        const user = cleanUser as User;
+        set({ user, isAuthenticated: true, isLoading: false });
+        await get().hydrate(user);
+        return true;
+      } else {
+        // Firebase Auth ok mas sem doc no Firestore — cria documento na hora
+        console.log('[Store] criando doc Firestore para usuário Firebase existente');
+        const minimalUser: User = {
+          id: authResult.user.uid,
+          name: authResult.user.displayName ?? email.split('@')[0],
+          cpf: '',
+          email: authResult.user.email ?? email,
+          phone: '',
+          role: UserRole.CLIENT,
+          createdAt: new Date().toISOString(),
+        };
+        await usersService.upsertUser(minimalUser.id, minimalUser);
+        set({ user: minimalUser, isAuthenticated: true, isLoading: false });
+        await get().hydrate(minimalUser);
         return true;
       }
     }
 
-    // Fallback técnicos seed (não cadastrados no Firebase Auth)
+    // 2. Fallback: técnicos seed (login local, sem Firebase Auth)
     const found = SEED_TECHNICIANS.find(
       u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
     );
     if (found) {
+      console.log('[Store] login via seed technician:', found.name);
       const { password: _pw, ...user } = found;
       set({ user, isAuthenticated: true, isLoading: false });
-      await get().hydrate();
+      await get().hydrate(user);
       return true;
     }
 
+    console.log('[Store] login falhou');
     set({ authError: 'E-mail ou senha incorretos.', isLoading: false });
     return false;
   },
 
+  // ── Register
   register: async (data) => {
     set({ isLoading: true });
     const authResult = await authService.register(data.email, data.password);
@@ -151,19 +196,25 @@ export const useStore = create<StoreState>((set, get) => ({
     }
 
     const newUser: User = {
-      id: authResult.user.uid, name: data.name, cpf: data.cpf,
-      email: data.email, phone: data.phone, role: UserRole.CLIENT,
-      address: { cep: data.cep, street: '', number: data.addressNumber,
-        complement: data.complement, neighborhood: '', city: '', state: '' },
+      id: authResult.user.uid,
+      name: data.name, cpf: data.cpf,
+      email: data.email, phone: data.phone,
+      role: UserRole.CLIENT,
+      address: {
+        cep: data.cep, street: '', number: data.addressNumber,
+        complement: data.complement, neighborhood: '', city: '', state: '',
+      },
       createdAt: new Date().toISOString(),
     };
 
     await usersService.upsertUser(newUser.id, newUser);
+    console.log('[Store] novo usuário salvo no Firestore:', newUser.id);
     set({ user: newUser, isAuthenticated: true, isLoading: false });
-    await get().hydrate();
+    await get().hydrate(newUser);
     return { success: true };
   },
 
+  // ── Logout
   logout: async () => {
     get()._unsubscribeTickets?.();
     get()._unsubscribeNotifications?.();
@@ -208,14 +259,16 @@ export const useStore = create<StoreState>((set, get) => ({
       status: TicketStatus.OPEN, priority: data.priority,
       equipmentId: data.equipmentId, equipmentTitle: data.equipmentTitle,
       subtypeId: data.subtypeId, subtypeLabel: data.subtypeLabel,
-      symptoms: data.symptoms, isOtherProblem: data.isOtherProblem, extraDetails: data.extraDetails,
+      symptoms: data.symptoms, isOtherProblem: data.isOtherProblem,
+      extraDetails: data.extraDetails,
       clientId: user.id, clientName: user.name, clientPhone: user.phone,
       clientCpf: user.cpf, clientEmail: user.email, clientAddress: user.address,
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
       notes: [], messages: [],
     };
 
-    await ticketsService.createTicket(newTicket);
+    const result = await ticketsService.createTicket(newTicket);
+    console.log('[Store] openTicket resultado:', result);
 
     await notificationsService.addNotification({
       id: `n${Date.now()}`, userId: 'u_isac',
