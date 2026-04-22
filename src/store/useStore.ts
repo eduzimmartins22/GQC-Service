@@ -280,12 +280,17 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   updateTicketStatus: async (ticketId, status, finalizationNote) => {
-    const { tickets } = get();
+    const { tickets, user } = get();
     const ticket = tickets.find(t => t.id === ticketId);
 
     await ticketsService.updateTicket(ticketId, {
       status,
       updatedAt: new Date().toISOString(),
+      // Quando técnico assume, salva technicianId e technicianName no ticket
+      ...(status === TicketStatus.IN_PROGRESS && user?.role === UserRole.TECHNICIAN && {
+        technicianId: user.id,
+        technicianName: user.name,
+      }),
       ...(status === TicketStatus.FINISHED && { closedAt: new Date().toISOString() }),
       ...(finalizationNote && { finalizationNote }),
     });

@@ -10,10 +10,11 @@ import { User, Ticket, Notification, ChatMessage } from '../types';
 export const usersService = {
   upsertUser: async (userId: string, userData: Partial<User & { password?: string }>) => {
     try {
-      await setDoc(doc(FIREBASE_DB, 'users', userId), {
-        ...userData,
-        updatedAt: new Date().toISOString(),
-      }, { merge: true });
+      const clean = Object.fromEntries(
+        Object.entries({ ...userData, updatedAt: new Date().toISOString() })
+          .filter(([_, v]) => v !== undefined)
+      );
+      await setDoc(doc(FIREBASE_DB, 'users', userId), clean, { merge: true });
       return { success: true };
     } catch (error: any) {
       console.error('[Firestore] upsertUser error:', error);
@@ -56,11 +57,15 @@ export const usersService = {
 export const ticketsService = {
   createTicket: async (ticketData: Ticket) => {
     try {
-      await setDoc(doc(FIREBASE_DB, 'tickets', ticketData.id), {
-        ...ticketData,
-        createdAt: ticketData.createdAt ?? new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
+      // Firestore não aceita campos undefined — remove-os antes de salvar
+      const clean = Object.fromEntries(
+        Object.entries({
+          ...ticketData,
+          createdAt: ticketData.createdAt ?? new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }).filter(([_, v]) => v !== undefined)
+      );
+      await setDoc(doc(FIREBASE_DB, 'tickets', ticketData.id), clean);
       console.log('[Firestore] ticket criado:', ticketData.id);
       return { success: true, id: ticketData.id };
     } catch (error: any) {
@@ -71,10 +76,12 @@ export const ticketsService = {
 
   updateTicket: async (ticketId: string, updates: Partial<Ticket>) => {
     try {
-      await updateDoc(doc(FIREBASE_DB, 'tickets', ticketId), {
-        ...updates,
-        updatedAt: new Date().toISOString(),
-      });
+      // Firestore não aceita campos undefined — remove-os antes de salvar
+      const clean = Object.fromEntries(
+        Object.entries({ ...updates, updatedAt: new Date().toISOString() })
+          .filter(([_, v]) => v !== undefined)
+      );
+      await updateDoc(doc(FIREBASE_DB, 'tickets', ticketId), clean);
       return { success: true };
     } catch (error: any) {
       console.error('[Firestore] updateTicket error:', error);

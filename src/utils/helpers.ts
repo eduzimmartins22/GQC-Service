@@ -10,8 +10,10 @@ export function formatDate(iso: string): string {
   });
 }
 
-export function formatDateTime(iso: string): string {
+export function formatDateTime(iso: string | undefined | null): string {
+  if (!iso) return '—';
   const date = new Date(iso);
+  if (isNaN(date.getTime())) return '—';
   return date.toLocaleString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
@@ -20,11 +22,11 @@ export function formatDateTime(iso: string): string {
   });
 }
 
-export function timeAgo(iso: string): string {
-  const now = new Date();
+export function timeAgo(iso: string | undefined | null): string {
+  if (!iso) return '—';
   const date = new Date(iso);
-  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
-
+  if (isNaN(date.getTime())) return '—';
+  const diff = Math.floor((Date.now() - date.getTime()) / 1000);
   if (diff < 60) return 'agora mesmo';
   if (diff < 3600) return `${Math.floor(diff / 60)}min atrás`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`;

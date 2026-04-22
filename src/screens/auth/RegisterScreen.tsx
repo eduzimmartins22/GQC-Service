@@ -9,7 +9,9 @@ import { Button } from '../../components/common/Button';
 import { Colors, Typography, Spacing, Radii, Shadows } from '../../constants/theme';
 import { validateCPF, validateCEP, validateEmail, validatePhone, validateRequired, validateCNPJ } from '../../utils/validations';
 
-function formatCPF(v: string) {
+// ─── FORMATADORES ──────────────────────────────────────────────────────────────
+
+function formatCPF(v: string): string {
   const d = v.replace(/\D/g, '').slice(0, 11);
   if (d.length <= 3) return d;
   if (d.length <= 6) return `${d.slice(0,3)}.${d.slice(3)}`;
@@ -17,27 +19,30 @@ function formatCPF(v: string) {
   return `${d.slice(0,3)}.${d.slice(3,6)}.${d.slice(6,9)}-${d.slice(9)}`;
 }
 
-function formatPhone(v: string) {
+function formatCNPJ(v: string): string {
+  // Remove tudo que não é número e limita a 14 dígitos
+  const d = v.replace(/\D/g, '').slice(0, 14);
+  if (d.length <= 2)  return d;
+  if (d.length <= 5)  return `${d.slice(0,2)}.${d.slice(2)}`;
+  if (d.length <= 8)  return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5)}`;
+  if (d.length <= 12) return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8)}`;
+  return `${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12)}`;
+}
+
+function formatPhone(v: string): string {
   const d = v.replace(/\D/g, '').slice(0, 11);
   if (d.length <= 2) return `(${d}`;
   if (d.length <= 7) return `(${d.slice(0,2)}) ${d.slice(2)}`;
   return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
 }
 
-function formatCEP(v: string) {
+function formatCEP(v: string): string {
   const d = v.replace(/\D/g, '').slice(0, 8);
   if (d.length <= 5) return d;
   return `${d.slice(0,5)}-${d.slice(5)}`;
 }
 
-function formatCNPJ(v: string) {
-  const d = v.replace(/\D/g, '').slice(0, 14);
-  if (d.length <= 4) return d;
-  if (d.length <= 8) return `${d.slice(0,4)}.${d.slice(4)}`;
-  if (d.length <= 12) return `${d.slice(0,4)}.${d.slice(4,8)}.${d.slice(8)}/0000`;
-  return `${d.slice(0,4)}.${d.slice(4,8)}.${d.slice(8,12)}-${d.slice(12)}`;
-}
-
+// ─── FIELD COMPONENT ──────────────────────────────────────────────────────────
 interface FieldProps {
   label: string;
   icon: string;
@@ -56,7 +61,7 @@ function Field({ label, icon, value, onChangeText, placeholder, keyboardType, se
   return (
     <View style={styles.fieldGroup}>
       <Text style={styles.label}>{label}</Text>
-      <View style={[styles.inputWrapper, error ? styles.inputWrapperError : {}]}>
+      <View style={[styles.inputWrapper, !!error && styles.inputWrapperError]}>
         <Ionicons name={icon as any} size={16} color={error ? Colors.error : Colors.textTertiary} style={styles.inputIcon} />
         <TextInput
           style={styles.input}
@@ -72,57 +77,73 @@ function Field({ label, icon, value, onChangeText, placeholder, keyboardType, se
         />
         {rightIcon}
       </View>
-      {error && error.length > 0 ? (
+      {!!error && (
         <View style={styles.errorMsg}>
           <Ionicons name="alert-circle-outline" size={12} color={Colors.error} />
-          <Text style={styles.errorMsgText}>{String(error)}</Text>
+          <Text style={styles.errorMsgText}>{error}</Text>
         </View>
-      ) : null}
+      )}
     </View>
   );
 }
 
+// ─── REGISTER SCREEN ──────────────────────────────────────────────────────────
 export function RegisterScreen({ navigation }: any) {
-  const [name, setName] = useState('');
-  const [useCNPJ, setUseCNPJ] = useState(false);
-  const [cpfCnpj, setCpfCnpj] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [cep, setCep] = useState('');
+  const [name, setName]                   = useState('');
+  const [useCNPJ, setUseCNPJ]             = useState(false);
+  const [cpfCnpj, setCpfCnpj]             = useState('');
+  const [phone, setPhone]                 = useState('');
+  const [email, setEmail]                 = useState('');
+  const [password, setPassword]           = useState('');
+  const [showPassword, setShowPassword]   = useState(false);
+  const [cep, setCep]                     = useState('');
   const [addressNumber, setAddressNumber] = useState('');
-  const [complement, setComplement] = useState('');
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [complement, setComplement]       = useState('');
+  const [fieldErrors, setFieldErrors]     = useState<Record<string, string>>({});
 
   const { register, isLoading } = useStore();
+
+  // Limpa erro de um campo específico sem apagar os outros
+  const clearError = (field: string) =>
+    setFieldErrors(prev => ({ ...prev, [field]: '' }));
+
+  // Troca CPF/CNPJ — limpa o campo e o erro
+  const switchDocType = (cnpj: boolean) => {
+    setUseCNPJ(cnpj);
+    setCpfCnpj('');
+    clearError('cpfCnpj');
+  };
+
+  // Handler separado para o campo CPF/CNPJ — sem reforçar máscara no loop
+  const handleDocChange = (raw: string) => {
+    const formatted = useCNPJ ? formatCNPJ(raw) : formatCPF(raw);
+    setCpfCnpj(formatted);
+    clearError('cpfCnpj');
+  };
 
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
-    const nameValidation = validateRequired(name, 'Nome');
-    if (!nameValidation.valid) errors.name = nameValidation.message;
+    if (!validateRequired(name, 'Nome').valid)
+      errors.name = validateRequired(name, 'Nome').message;
 
-    const cpfCnpjValidation = useCNPJ 
-      ? validateCNPJ(cpfCnpj)
-      : validateCPF(cpfCnpj);
-    if (!cpfCnpjValidation.valid) errors.cpfCnpj = cpfCnpjValidation.message;
+    const docValidation = useCNPJ ? validateCNPJ(cpfCnpj) : validateCPF(cpfCnpj);
+    if (!docValidation.valid) errors.cpfCnpj = docValidation.message;
 
-    const phoneValidation = validatePhone(phone);
-    if (!phoneValidation.valid) errors.phone = phoneValidation.message;
+    const phoneV = validatePhone(phone);
+    if (!phoneV.valid) errors.phone = phoneV.message;
 
-    const emailValidation = validateEmail(email);
-    if (!emailValidation.valid) errors.email = emailValidation.message;
+    const emailV = validateEmail(email);
+    if (!emailV.valid) errors.email = emailV.message;
 
-    const passwordValidation = validateRequired(password, 'Senha');
-    if (!passwordValidation.valid) errors.password = passwordValidation.message;
-    else if (password.length < 6) errors.password = 'A senha deve ter pelo menos 6 caracteres';
+    if (!password || password.length < 6)
+      errors.password = 'A senha deve ter pelo menos 6 caracteres';
 
-    const cepValidation = validateCEP(cep);
-    if (!cepValidation.valid) errors.cep = cepValidation.message;
+    const cepV = validateCEP(cep);
+    if (!cepV.valid) errors.cep = cepV.message;
 
-    const numberValidation = validateRequired(addressNumber, 'Número');
-    if (!numberValidation.valid) errors.addressNumber = numberValidation.message;
+    if (!validateRequired(addressNumber, 'Número').valid)
+      errors.addressNumber = validateRequired(addressNumber, 'Número').message;
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -147,19 +168,16 @@ export function RegisterScreen({ navigation }: any) {
     }
   };
 
-  const isValid =
-    !fieldErrors.name &&
-    !fieldErrors.cpfCnpj &&
-    !fieldErrors.phone &&
-    !fieldErrors.email &&
-    !fieldErrors.password &&
-    !fieldErrors.cep &&
-    !fieldErrors.addressNumber;
-
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: Colors.background }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: Colors.background }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={Colors.primary} />
         </TouchableOpacity>
@@ -169,60 +187,126 @@ export function RegisterScreen({ navigation }: any) {
           <Text style={styles.subtitle}>Preencha seus dados para continuar</Text>
         </View>
 
+        {/* ── DADOS PESSOAIS ── */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Dados pessoais</Text>
 
-          <Field label="Nome completo *" icon="person-outline" value={name} onChangeText={(v) => { setName(v); setFieldErrors({ ...fieldErrors, name: '' }); }} placeholder="Seu nome completo" error={fieldErrors.name} />
-          
-          {/* Toggle CPF/CNPJ */}
-          <View style={styles.cpfCnpjToggle}>
-            <TouchableOpacity 
-              style={[styles.toggleBtn, !useCNPJ && styles.toggleBtnActive]} 
-              onPress={() => { setUseCNPJ(false); setCpfCnpj(''); setFieldErrors({ ...fieldErrors, cpfCnpj: '' }); }}
+          <Field
+            label="Nome completo *" icon="person-outline"
+            value={name}
+            onChangeText={v => { setName(v); clearError('name'); }}
+            placeholder="Seu nome completo"
+            error={fieldErrors.name}
+          />
+
+          {/* Toggle CPF / CNPJ */}
+          <View style={styles.toggleRow}>
+            <TouchableOpacity
+              style={[styles.toggleBtn, !useCNPJ && styles.toggleBtnActive]}
+              onPress={() => switchDocType(false)}
             >
               <Text style={[styles.toggleBtnText, !useCNPJ && styles.toggleBtnTextActive]}>CPF</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.toggleBtn, useCNPJ && styles.toggleBtnActive]} 
-              onPress={() => { setUseCNPJ(true); setCpfCnpj(''); setFieldErrors({ ...fieldErrors, cpfCnpj: '' }); }}
+            <TouchableOpacity
+              style={[styles.toggleBtn, useCNPJ && styles.toggleBtnActive]}
+              onPress={() => switchDocType(true)}
             >
               <Text style={[styles.toggleBtnText, useCNPJ && styles.toggleBtnTextActive]}>CNPJ</Text>
             </TouchableOpacity>
           </View>
 
-          <Field 
-            label={useCNPJ ? "CNPJ *" : "CPF *"} 
-            icon="card-outline" 
-            value={cpfCnpj} 
-            onChangeText={(v) => { setCpfCnpj(useCNPJ ? formatCNPJ(v) : formatCPF(v)); setFieldErrors({ ...fieldErrors, cpfCnpj: '' }); }} 
-            placeholder={useCNPJ ? "00.000.000/0000-00" : "000.000.000-00"} 
-            keyboardType="numeric" 
-            maxLength={useCNPJ ? 18 : 14} 
-            autoCapitalize="none" 
-            error={fieldErrors.cpfCnpj} 
+          <Field
+            label={useCNPJ ? 'CNPJ *' : 'CPF *'}
+            icon="card-outline"
+            value={cpfCnpj}
+            onChangeText={handleDocChange}
+            placeholder={useCNPJ ? '00.000.000/0000-00' : '000.000.000-00'}
+            keyboardType="numeric"
+            maxLength={useCNPJ ? 18 : 14}
+            autoCapitalize="none"
+            error={fieldErrors.cpfCnpj}
           />
-          
-          <Field label="Telefone / WhatsApp *" icon="call-outline" value={phone} onChangeText={(v) => { setPhone(formatPhone(v)); setFieldErrors({ ...fieldErrors, phone: '' }); }} placeholder="(00) 00000-0000" keyboardType="phone-pad" maxLength={15} error={fieldErrors.phone} />
-          <Field label="E-mail *" icon="mail-outline" value={email} onChangeText={(v) => { setEmail(v); setFieldErrors({ ...fieldErrors, email: '' }); }} placeholder="seu@email.com" keyboardType="email-address" autoCapitalize="none" error={fieldErrors.email} />
-          <Field label="Senha *" icon="lock-closed-outline" value={password} onChangeText={(v) => { setPassword(v); setFieldErrors({ ...fieldErrors, password: '' }); }} placeholder="Mínimo 6 caracteres" secureTextEntry={!showPassword} autoCapitalize="none" error={fieldErrors.password} rightIcon={<TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}><Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color={Colors.textTertiary} /></TouchableOpacity>} />
+
+          <Field
+            label="Telefone / WhatsApp *" icon="call-outline"
+            value={phone}
+            onChangeText={v => { setPhone(formatPhone(v)); clearError('phone'); }}
+            placeholder="(00) 00000-0000"
+            keyboardType="phone-pad"
+            maxLength={15}
+            error={fieldErrors.phone}
+          />
+
+          <Field
+            label="E-mail *" icon="mail-outline"
+            value={email}
+            onChangeText={v => { setEmail(v); clearError('email'); }}
+            placeholder="seu@email.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            error={fieldErrors.email}
+          />
+
+          <Field
+            label="Senha *" icon="lock-closed-outline"
+            value={password}
+            onChangeText={v => { setPassword(v); clearError('password'); }}
+            placeholder="Mínimo 6 caracteres"
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            error={fieldErrors.password}
+            rightIcon={
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
+                <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={18} color={Colors.textTertiary} />
+              </TouchableOpacity>
+            }
+          />
         </View>
 
+        {/* ── LOCALIZAÇÃO ── */}
         <View style={[styles.card, { marginTop: Spacing.md }]}>
           <Text style={styles.sectionTitle}>Localização</Text>
 
-          <Field label="CEP *" icon="location-outline" value={cep} onChangeText={(v) => { setCep(formatCEP(v)); setFieldErrors({ ...fieldErrors, cep: '' }); }} placeholder="00000-000" keyboardType="numeric" maxLength={9} error={fieldErrors.cep} />
-          <Field label="Número *" icon="home-outline" value={addressNumber} onChangeText={(v) => { setAddressNumber(v); setFieldErrors({ ...fieldErrors, addressNumber: '' }); }} placeholder="Ex: 42" keyboardType="numeric" error={fieldErrors.addressNumber} />
-          <Field label="Complemento" icon="business-outline" value={complement} onChangeText={setComplement} placeholder="Apto, Sala, Bloco... (opcional)" />
+          <Field
+            label="CEP *" icon="location-outline"
+            value={cep}
+            onChangeText={v => { setCep(formatCEP(v)); clearError('cep'); }}
+            placeholder="00000-000"
+            keyboardType="numeric"
+            maxLength={9}
+            error={fieldErrors.cep}
+          />
+          <Field
+            label="Número *" icon="home-outline"
+            value={addressNumber}
+            onChangeText={v => { setAddressNumber(v); clearError('addressNumber'); }}
+            placeholder="Ex: 42"
+            keyboardType="numeric"
+            error={fieldErrors.addressNumber}
+          />
+          <Field
+            label="Complemento" icon="business-outline"
+            value={complement}
+            onChangeText={setComplement}
+            placeholder="Apto, Sala, Bloco... (opcional)"
+          />
         </View>
 
-        {fieldErrors.form ? (
+        {/* Erro geral */}
+        {!!fieldErrors.form && (
           <View style={styles.errorBanner}>
             <Ionicons name="alert-circle-outline" size={16} color={Colors.error} />
             <Text style={styles.errorText}>{fieldErrors.form}</Text>
           </View>
-        ) : null}
+        )}
 
-        <Button label={isLoading ? 'Cadastrando...' : 'Criar conta'} onPress={handleRegister} disabled={!isValid || isLoading} fullWidth size="lg" style={{ marginTop: Spacing.lg }} />
+        <Button
+          label={isLoading ? 'Cadastrando...' : 'Criar conta'}
+          onPress={handleRegister}
+          disabled={isLoading}
+          fullWidth size="lg"
+          style={{ marginTop: Spacing.lg }}
+        />
 
         <Text style={styles.loginHint}>
           Já tem conta?{' '}
@@ -239,13 +323,7 @@ const styles = StyleSheet.create({
   header: { marginBottom: Spacing.lg },
   title: { fontSize: Typography.xl, fontWeight: '800', color: Colors.textPrimary },
   subtitle: { fontSize: Typography.sm, color: Colors.textSecondary, marginTop: 4 },
-  card: {
-    backgroundColor: Colors.white,
-    borderRadius: Radii.lg,
-    padding: Spacing.base,
-    ...Shadows.sm,
-    marginBottom: Spacing.sm,
-  },
+  card: { backgroundColor: Colors.white, borderRadius: Radii.lg, padding: Spacing.base, ...Shadows.sm },
   sectionTitle: { fontSize: Typography.sm, fontWeight: '700', color: Colors.textSecondary, marginBottom: Spacing.md, textTransform: 'uppercase', letterSpacing: 0.5 },
   fieldGroup: { marginBottom: Spacing.md },
   label: { fontSize: Typography.sm, fontWeight: '600', color: Colors.textPrimary, marginBottom: 6 },
@@ -260,7 +338,7 @@ const styles = StyleSheet.create({
   errorText: { flex: 1, fontSize: Typography.sm, color: Colors.error },
   loginHint: { textAlign: 'center', marginTop: Spacing.lg, fontSize: Typography.sm, color: Colors.textSecondary },
   loginLink: { color: Colors.primary, fontWeight: '700' },
-  cpfCnpjToggle: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.md },
+  toggleRow: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.md },
   toggleBtn: { flex: 1, paddingVertical: Spacing.sm, paddingHorizontal: Spacing.md, borderRadius: Radii.md, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.background, alignItems: 'center' },
   toggleBtnActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
   toggleBtnText: { fontSize: Typography.sm, fontWeight: '600', color: Colors.textSecondary },

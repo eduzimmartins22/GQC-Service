@@ -60,7 +60,7 @@ export function ClientsByTechScreen({ navigation }: any) {
               <View style={styles.cardLeft}>
                 <View style={[styles.avatar, hasActive && styles.avatarActive]}>
                   <Text style={styles.avatarText}>
-                    {client.clientName.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()}
+                    {(client.clientName ?? '?').split(' ').filter((n: string) => n.length > 0).map((n: string) => n[0]).slice(0, 2).join('').toUpperCase()}
                   </Text>
                 </View>
                 <View style={styles.clientInfo}>

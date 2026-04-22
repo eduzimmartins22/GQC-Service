@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useStore } from '../../store/useStore';
 import { TicketCard } from '../../components/cards/TicketCard';
 import { TicketStatus } from '../../types';
@@ -30,15 +30,16 @@ export function ClientTicketsScreen({ route, navigation }: any) {
       {/* Filter tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsWrap} contentContainerStyle={styles.tabs}>
         {TABS.map(tab => (
-          <View
+          <TouchableOpacity
             key={tab.key}
-            onTouchEnd={() => setActiveTab(tab.key)}
+            onPress={() => setActiveTab(tab.key)}
             style={[styles.tab, activeTab === tab.key && styles.tabActive]}
+            activeOpacity={0.7}
           >
             <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
               {tab.label}
             </Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
 

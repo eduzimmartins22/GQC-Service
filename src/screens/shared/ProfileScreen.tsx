@@ -24,7 +24,7 @@ export function ProfileScreen({ navigation }: any) {
       <View style={styles.avatarSection}>
         <View style={styles.avatar}>
           <Text style={styles.avatarInitials}>
-            {user?.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
+            {(user?.name ?? '?').split(' ').filter(n => n.length > 0).map(n => n[0]).slice(0, 2).join('').toUpperCase()}
           </Text>
         </View>
         <Text style={styles.name}>{user?.name}</Text>
@@ -40,7 +40,7 @@ export function ProfileScreen({ navigation }: any) {
         <Divider />
         <InfoRow icon="call-outline" label="Telefone" value={user?.phone || 'Não informado'} />
         <Divider />
-        <InfoRow icon="card-outline" label="CPF" value={user?.cpf || 'Não informado'} />
+        <InfoRow icon="card-outline" label="CPF / CNPJ" value={user?.cpf || 'Não informado'} />
       </View>
 
       {/* Address */}
